@@ -16,8 +16,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from .models import CallEvent, ErrorEvent
 from .serializers import CallEventSerializer, ErrorEventSerializer
-from .validators import validate_twilio_webhook
-# from .event_handler import process_and_emit_event
+from .utilities.validators import validate_twilio_webhook
+from .utilities.event_processing import process_call_event, process_error_event
 
 
 class CallEventViewSet(viewsets.ReadOnlyModelViewSet):
@@ -90,9 +90,7 @@ def twilio_events_webhook(request):
             return error_response
         '''
         
-        
         content_type = request.content_type
-        
         if 'application/json' in content_type:
             data = json.loads(request.body)
         else:
@@ -114,14 +112,18 @@ def twilio_events_webhook(request):
             json.dump(data, f, indent=2)
         '''
 
-        '''
         # Process event(s): Twilio Event Streams sends an array of events
-        if isinstance(data, list):
-            for event in data:
-                await process_and_emit_event(event)
-        else:
-            await process_and_emit_event(data)
-        '''
+        events_to_process = data if isinstance(data, list) else [data]
+        
+        for event in events_to_process:
+            event_type = event.get('type', '')
+            
+            if 'com.twilio.voice' in event_type or 'call' in event_type.lower():
+                process_call_event(event)
+            elif 'error' in event_type.lower():
+                process_error_event(event)
+            else:
+                print(f"Unknown event type: {event_type}")
         
         return HttpResponse(status=204)
         
