@@ -14,6 +14,8 @@ from django.utils import timezone
 from rest_framework import viewsets, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 from .models import CallEvent, ErrorEvent
 from .serializers import CallEventSerializer, ErrorEventSerializer
 from .utilities.validators import validate_twilio_webhook
@@ -115,13 +117,36 @@ def twilio_events_webhook(request):
         # Process event(s): Twilio Event Streams sends an array of events
         events_to_process = data if isinstance(data, list) else [data]
         
+        channel_layer = get_channel_layer()
+        
         for event in events_to_process:
             event_type = event.get('type', '')
+            created_event = None
             
             if 'com.twilio.voice' in event_type or 'call' in event_type.lower():
-                process_call_event(event)
+                created_event = process_call_event(event)
+                if created_event:
+                    # Broadcast to WebSocket clients
+                    async_to_sync(channel_layer.group_send)(
+                        'twilio_events',
+                        {
+                            'type': 'event_message',
+                            'event_type': 'call_event',
+                            'data': CallEventSerializer(created_event).data
+                        }
+                    )
             elif 'error' in event_type.lower():
-                process_error_event(event)
+                created_event = process_error_event(event)
+                if created_event:
+                    # Broadcast to WebSocket clients
+                    async_to_sync(channel_layer.group_send)(
+                        'twilio_events',
+                        {
+                            'type': 'event_message',
+                            'event_type': 'error_event',
+                            'data': ErrorEventSerializer(created_event).data
+                        }
+                    )
             else:
                 print(f"Unknown event type: {event_type}")
         
