@@ -32,8 +32,6 @@ INSTALLED_APPS = [
     'corsheaders',
     'channels',
     'events',
-    'integrations',
-    'monitoring',
 ]
 
 MIDDLEWARE = [

@@ -20,6 +20,8 @@ from .models import CallEvent, ErrorEvent
 from .serializers import CallEventSerializer, ErrorEventSerializer
 from .utilities.validators import validate_twilio_webhook
 from .utilities.event_processing import process_call_event, process_error_event
+from dotenv import load_dotenv
+load_dotenv()
 
 
 class CallEventViewSet(viewsets.ReadOnlyModelViewSet):
@@ -65,10 +67,15 @@ class ErrorEventViewSet(viewsets.ReadOnlyModelViewSet):
     
     @action(detail=False, methods=['get'])
     def stats(self, request):
-        """Get statistics about error events"""
+        """Get statistics about error events for today"""
+        today_start = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+        today_end = today_start + timedelta(days=1)
+        
+        today_errors = ErrorEvent.objects.filter(timestamp__gte=today_start, timestamp__lt=today_end)
+        
         by_severity = {}
-        for severity in ErrorEvent.objects.values_list('severity', flat=True).distinct():
-            by_severity[severity] = ErrorEvent.objects.filter(severity=severity).count()
+        for severity in today_errors.values_list('severity', flat=True).distinct():
+            by_severity[severity] = today_errors.filter(severity=severity).count()
         
         return Response({
             'by_severity': by_severity
@@ -85,7 +92,7 @@ def twilio_events_webhook(request):
         '''
         # Validate Twilio webhook signature here (uncomment, when auth token is ready)
 
-        auth_token = os.environ.get('TWILIO_AUTH_TOKEN', '')
+        auth_token = os.getenv('TWILIO_AUTH_TOKEN')
         
         is_valid, error_response = validate_twilio_webhook(request, auth_token)
         if not is_valid:
