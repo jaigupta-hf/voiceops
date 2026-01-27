@@ -1,3 +1,8 @@
+import json
+from datetime import datetime, timedelta
+from urllib.parse import parse_qs, unquote
+from ..models import CallEvent, ErrorEvent
+
 def process_call_event(event_data):
     """Process and store a call event"""
     try:
@@ -46,7 +51,6 @@ def process_error_event(event_data):
                     message_text = payload_json.get('message_text')
                     if message_text:
                         # Parse URL-encoded query string
-                        from urllib.parse import parse_qs, unquote
                         try:
                             params = parse_qs(message_text)
                             if 'Msg' in params:
