@@ -78,11 +78,7 @@ def database_call_notification(event_data):
         response_data = response.json()
         
         if response_data.get('ok'):
-            print(f"Slack notification sent successfully for database error: {error_data.get('error_code')}")
-            return True
-        else:
-            print(f"Failed to send Slack notification: {response_data.get('error', 'Unknown error')}")
-            return False
+            print(f"Slack notification sent successfully for database error")
             
     except Exception as e:
         print(f"Exception while sending Slack notification: {e}")
@@ -116,11 +112,7 @@ def database_error_notification(event_data):
         response_data = response.json()
         
         if response_data.get('ok'):
-            print(f"Slack notification sent successfully for database error: {error_data.get('error_code')}")
-            return True
-        else:
-            print(f"Failed to send Slack notification: {response_data.get('error', 'Unknown error')}")
-            return False
+            print(f"Slack notification sent successfully for database error")
             
     except Exception as e:
         print(f"Exception while sending Slack notification: {e}")
@@ -150,11 +142,7 @@ def webhook_error_notification(error_msg):
         response_data = response.json()
         
         if response_data.get('ok'):
-            print(f"Slack notification sent successfully for database error: {error_data.get('error_code')}")
-            return True
-        else:
-            print(f"Failed to send Slack notification: {response_data.get('error', 'Unknown error')}")
-            return False
+            print(f"Slack notification sent successfully for webhook error")
             
     except Exception as e:
         print(f"Exception while sending Slack notification: {e}")
