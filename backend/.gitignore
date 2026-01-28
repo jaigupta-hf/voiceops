@@ -43,3 +43,4 @@ htmlcov/
 
 # Event logs
 event_logs/
+events/management/
