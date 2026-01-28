@@ -16,10 +16,13 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
+
 from .models import CallEvent, ErrorEvent
 from .serializers import CallEventSerializer, ErrorEventSerializer
 from .utilities.validators import validate_twilio_webhook
 from .utilities.event_processing import process_call_event, process_error_event
+from .integrations.slack import send_slack_notification
+
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -154,6 +157,20 @@ def twilio_events_webhook(request):
                             'data': ErrorEventSerializer(created_event).data
                         }
                     )
+
+                    # Send Slack notification for error events
+                    try:
+                        send_slack_notification({
+                            'severity': created_event.severity,
+                            'error_code': created_event.error_code,
+                            'message': created_event.error_message,
+                            'product': created_event.product,
+                            'account_sid': created_event.account_sid,
+                            'correlation_sid': created_event.correlation_sid,
+                            'timestamp': created_event.timestamp.isoformat()
+                        })
+                    except Exception as slack_exc:
+                        print(f"Slack notification failed: {slack_exc}")
             else:
                 print(f"Unknown event type: {event_type}")
         
