@@ -11,7 +11,6 @@ class EventStreamConsumer(AsyncWebsocketConsumer):
     """
     
     async def connect(self):
-        """Accept WebSocket connection and join the events group"""
         self.group_name = 'twilio_events'
         
         # Join the events group
@@ -24,7 +23,6 @@ class EventStreamConsumer(AsyncWebsocketConsumer):
         print(f"WebSocket connected: {self.channel_name}")
     
     async def disconnect(self, close_code):
-        """Leave the events group when disconnecting"""
         await self.channel_layer.group_discard(
             self.group_name,
             self.channel_name
