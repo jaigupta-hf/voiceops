@@ -21,7 +21,7 @@ from .models import CallEvent, ErrorEvent
 from .serializers import CallEventSerializer, ErrorEventSerializer
 from .utilities.validators import validate_twilio_webhook
 from .utilities.event_processing import process_call_event, process_error_event
-from .integrations.slack import send_slack_notification
+from .integrations.slack import twilio_error_notification, webhook_error_notification
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -170,7 +170,7 @@ def twilio_events_webhook(request):
 
                     # Send Slack notification for error events
                     try:
-                        send_slack_notification({
+                        twilio_error_notification({
                             'severity': created_event.severity,
                             'error_code': created_event.error_code,
                             'message': created_event.error_message,
@@ -188,7 +188,9 @@ def twilio_events_webhook(request):
         
     except json.JSONDecodeError as e:
         print(f"Error decoding JSON: {e}")
+        webhook_error_notification(e)
         return HttpResponse(status=400)
     except Exception as e:
         print(f"Error processing webhook: {e}")
+        webhook_error_notification(e)
         return HttpResponse(status=500)

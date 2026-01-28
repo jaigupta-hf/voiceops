@@ -2,6 +2,7 @@ import json
 from datetime import datetime, timedelta
 from urllib.parse import parse_qs, unquote
 from ..models import CallEvent, ErrorEvent
+from ..integrations.slack import database_call_notification, database_error_notification
 
 def process_call_event(event_data):
     """Process and store a call event"""
@@ -28,6 +29,7 @@ def process_call_event(event_data):
         
     except Exception as e:
         print(f"Error processing call event: {e}")
+        database_call_notification(event_data)
         return None
 
 
@@ -101,4 +103,5 @@ def process_error_event(event_data):
         
     except Exception as e:
         print(f"Error processing error event: {e}")
+        database_error_notification(event_data)
         return None
