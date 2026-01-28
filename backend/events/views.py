@@ -56,6 +56,11 @@ class CallEventViewSet(viewsets.ReadOnlyModelViewSet):
         return Response({
             'by_event_type': by_event_type
         })
+    
+    def paginate_queryset(self, queryset):
+        if self.request.query_params.get('no_pagination') == 'true':
+            return None  
+        return super().paginate_queryset(queryset)
 
 
 class ErrorEventViewSet(viewsets.ReadOnlyModelViewSet):
@@ -83,6 +88,11 @@ class ErrorEventViewSet(viewsets.ReadOnlyModelViewSet):
         return Response({
             'by_severity': by_severity
         })
+
+    def paginate_queryset(self, queryset):
+        if self.request.query_params.get('no_pagination') == 'true':
+            return None 
+        return super().paginate_queryset(queryset)
 
 
 @csrf_exempt
