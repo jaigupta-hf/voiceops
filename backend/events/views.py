@@ -11,6 +11,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.conf import settings
 from django.utils import timezone
+from django.db.models import Max, OuterRef, Subquery
 from rest_framework import viewsets, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -31,11 +32,37 @@ class CallEventViewSet(viewsets.ReadOnlyModelViewSet):
     """
     API endpoint for viewing call events
     """
-    queryset = CallEvent.objects.all().order_by('-timestamp')
+    queryset = CallEvent.objects.filter(call_sid__isnull=False).exclude(call_sid='').order_by('-timestamp')
     serializer_class = CallEventSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['call_sid', 'from_number', 'to_number', 'account_sid']
     ordering_fields = ['timestamp', 'created_at']
+    
+    def get_queryset(self):
+        """
+        Return only the latest event for each unique call_sid.
+        Uses a subquery to get the latest event_id per call_sid.
+        Exception: When searching for a specific call_sid, return all events.
+        """
+        queryset = super().get_queryset()
+        
+        # If searching (for timeline view), don't deduplicate - return all events
+        search_param = self.request.query_params.get('search', None)
+        if search_param:
+            # Return all events matching the search, don't deduplicate
+            return queryset
+        
+        # Subquery to get the latest event_id for each call_sid
+        latest_events = CallEvent.objects.filter(
+            call_sid=OuterRef('call_sid')
+        ).order_by('-timestamp').values('event_id')[:1]
+        
+        # Filter to only include the latest event per call_sid
+        queryset = queryset.filter(
+            event_id__in=Subquery(latest_events)
+        ).order_by('-timestamp')
+        
+        return queryset
     
     @action(detail=False, methods=['get'])
     def stats(self, request):
@@ -127,7 +154,7 @@ def twilio_events_webhook(request):
         os.makedirs(event_logs_dir, exist_ok=True)
         
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S_%f') ## creating folder
-        filename = f'twilio_event_{timestamp}.json'
+        filename = f'{timestamp}.json'
         filepath = os.path.join(event_logs_dir, filename)
         
         with open(filepath, 'w') as f:
