@@ -151,9 +151,9 @@ def twilio_events_webhook(request):
         '''
         # for logging (will be removed later) [line 43 - 52]
         event_logs_dir = os.path.join(settings.BASE_DIR, 'event_logs')
-        os.makedirs(event_logs_dir, exist_ok=True)
+        os.makedirs(event_logs_dir, exist_ok=True) ## creating folder
         
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S_%f') ## creating folder
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S_%f') 
         filename = f'{timestamp}.json'
         filepath = os.path.join(event_logs_dir, filename)
         

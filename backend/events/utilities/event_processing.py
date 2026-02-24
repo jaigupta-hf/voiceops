@@ -1,35 +1,257 @@
 import json
+import re
 from datetime import datetime, timedelta
+from email.utils import parsedate_to_datetime
 from urllib.parse import parse_qs, unquote
 from ..models import CallEvent, ErrorEvent
 from ..integrations.slack import database_call_notification, database_error_notification
 
-def process_call_event(event_data):
-    """Process and store a call event"""
+# will handle each category of events separately because they have different schema
+def status_callback_call(event_data):
+    """Process and store a status-callback.call event"""
     try:
-        event_id = event_data.get('id', '')
-
         data = event_data.get('data', {})
         request_params = data.get('request', {}).get('parameters', {})
+        timestamp_str = request_params.get('Timestamp', event_data.get('time', ''))
         
         call_event = CallEvent.objects.create(
-            event_id=event_id,
-            call_sid=request_params.get('CallSid', data.get('sid', '')),
+            event_id=data.get('eventSid', ''),
             account_sid=request_params.get('AccountSid', ''),
+            call_sid=request_params.get('CallSid', ''),
+            conference_sid='',  # Leave blank for status-callback.call events
             event_type=event_data.get('type', ''),
             call_status=request_params.get('CallStatus', ''),
             direction=request_params.get('Direction', ''),
             from_number=request_params.get('From', ''),
             to_number=request_params.get('To', ''),
-            timestamp=datetime.fromisoformat(event_data.get('time', '').replace('Z', '+00:00')),
-            raw_payload=event_data
+            timestamp=parsedate_to_datetime(timestamp_str),
+            meta_data=event_data
         )
 
         return call_event
         
     except Exception as e:
-        print(f"Error processing call event: {e}")
+        print(f"Error processing status-callback.call event: {e}")
         database_call_notification(event_data)
+        return None
+
+
+def status_callback_conference_participant(event_data):
+    """Process and store a status-callback.conference-participant event"""
+    try:
+        data = event_data.get('data', {})
+        request_params = data.get('request', {}).get('parameters', {})
+        timestamp_str = request_params.get('Timestamp', event_data.get('time', ''))
+        
+        call_event = CallEvent.objects.create(
+            event_id=data.get('eventSid', ''),
+            account_sid=request_params.get('AccountSid', ''),
+            call_sid=request_params.get('CallSid', ''),
+            conference_sid=request_params.get('ConferenceSid', ''),
+            event_type=event_data.get('type', ''),
+            call_status=request_params.get('StatusCallbackEvent', ''),
+            direction='',  # Leave blank for status-callback.conference-participant events
+            from_number='',  # Leave blank for status-callback.conference-participant events
+            to_number='',  # Leave blank for status-callback.conference-participant events
+            timestamp=parsedate_to_datetime(timestamp_str),
+            meta_data=event_data
+        )
+
+        return call_event
+        
+    except Exception as e:
+        print(f"Error processing status-callback.conference-participant event: {e}")
+        database_call_notification(event_data)
+        return None
+
+
+def status_callback_conference(event_data):
+    """Process and store a status-callback.conference event"""
+    try:
+        data = event_data.get('data', {})
+        request_params = data.get('request', {}).get('parameters', {})
+        timestamp_str = request_params.get('Timestamp', event_data.get('time', ''))
+        
+        call_event = CallEvent.objects.create(
+            event_id=data.get('eventSid', ''),
+            account_sid=request_params.get('AccountSid', ''),
+            call_sid='',  # Leave blank for status-callback.conference events
+            conference_sid=request_params.get('ConferenceSid', ''),
+            event_type=event_data.get('type', ''),
+            call_status=request_params.get('StatusCallbackEvent', ''),
+            direction='',  # Leave blank for status-callback.conference events
+            from_number='',  # Leave blank for status-callback.conference events
+            to_number='',  # Leave blank for status-callback.conference events
+            timestamp=parsedate_to_datetime(timestamp_str),
+            meta_data=event_data
+        )
+
+        return call_event
+        
+    except Exception as e:
+        print(f"Error processing status-callback.conference event: {e}")
+        database_call_notification(event_data)
+        return None
+
+
+def api_request_call(event_data):
+    """Process and store an api-request.call event"""
+    try:
+        data = event_data.get('data', {})
+        request_params = data.get('request', {}).get('parameters', {})
+        timestamp_str = data.get('requestDateCreated', event_data.get('time', ''))
+        
+        call_event = CallEvent.objects.create(
+            event_id=data.get('eventSid', ''),
+            account_sid=request_params.get('AccountSid', ''),
+            call_sid=data.get('sid', ''),
+            conference_sid='',  # Leave blank for api-request.call events
+            event_type=event_data.get('type', ''),
+            call_status='',  # Leave blank for api-request.call events
+            direction='',  # Leave blank for api-request.call events
+            from_number=request_params.get('From', ''),
+            to_number=request_params.get('To', ''),
+            timestamp=parsedate_to_datetime(timestamp_str),
+            meta_data=event_data
+        )
+
+        return call_event
+        
+    except Exception as e:
+        print(f"Error processing api-request.call event: {e}")
+        database_call_notification(event_data)
+        return None
+
+
+def api_request_conference_participant_created(event_data): 
+    """Process and store an api-request.conference-participant.created event"""
+    try:
+        data = event_data.get('data', {})
+        request_params = data.get('request', {}).get('parameters', {})
+        timestamp_str = data.get('requestDateCreated', event_data.get('time', ''))
+        
+        # Extract account_sid from URL path (e.g., /Accounts/AC.../...)
+        account_sid = ''
+        request_url = data.get('request', {}).get('url', '')
+        account_match = re.search(r'/Accounts/([A-Za-z0-9]+)', request_url)
+        if account_match:
+            account_sid = account_match.group(1)
+        
+        call_event = CallEvent.objects.create(
+            event_id=data.get('eventSid', ''),
+            account_sid=account_sid,
+            call_sid='',  # Leave blank for api-request.conference-participant events
+            conference_sid=data.get('sid', ''),
+            event_type=event_data.get('type', ''),
+            call_status='',  # Leave blank for api-request.conference-participant events
+            direction='',  # Leave blank for api-request.conference-participant events
+            from_number=request_params.get('From', ''),
+            to_number=request_params.get('To', ''),
+            timestamp=parsedate_to_datetime(timestamp_str),
+            meta_data=event_data
+        )
+
+        return call_event
+        
+    except Exception as e:
+        print(f"Error processing api-request.conference-participant.created event: {e}")
+        database_call_notification(event_data)
+        return None
+
+
+def api_request_conference_participant_modified(event_data): # also covers api-request.conference-participant.deleted
+    """Process and store an api-request.conference-participant.modified event"""
+    try:
+        data = event_data.get('data', {})
+        timestamp_str = data.get('requestDateCreated', event_data.get('time', ''))
+        
+        # Extract account_sid and call_sid from URL path
+        account_sid = ''
+        call_sid = ''
+        request_url = data.get('request', {}).get('url', '')
+        account_match = re.search(r'/Accounts/([A-Za-z0-9]+)', request_url)
+        if account_match:
+            account_sid = account_match.group(1)
+        
+        participant_match = re.search(r'/Participants/([A-Za-z0-9]+)', request_url)
+        if participant_match:
+            call_sid = participant_match.group(1)
+        
+        call_event = CallEvent.objects.create(
+            event_id=data.get('eventSid', ''),
+            account_sid=account_sid,
+            call_sid=call_sid,
+            conference_sid=data.get('sid', ''),
+            event_type=event_data.get('type', ''),
+            call_status='',  # Leave blank for api-request.conference-participant.modified events
+            direction='',  # Leave blank for api-request.conference-participant.modified events
+            from_number='',  # Leave blank for api-request.conference-participant.modified events
+            to_number='',  # Leave blank for api-request.conference-participant.modified events
+            timestamp=parsedate_to_datetime(timestamp_str),
+            meta_data=event_data
+        )
+
+        return call_event
+        
+    except Exception as e:
+        print(f"Error processing api-request.conference-participant.modified event: {e}")
+        database_call_notification(event_data)
+        return None
+
+
+def twiml_call(event_data):
+    """Process and store a twiml.call event"""
+    try:
+        data = event_data.get('data', {})
+        request_params = data.get('request', {}).get('parameters', {})
+        timestamp_str = data.get('requestDateCreated', event_data.get('time', ''))
+        
+        call_event = CallEvent.objects.create(
+            event_id=data.get('eventSid', ''),
+            account_sid=request_params.get('AccountSid', ''),
+            call_sid=request_params.get('CallSid', ''),
+            conference_sid='',  # Leave blank for twiml.call events
+            event_type=event_data.get('type', ''),
+            call_status=request_params.get('CallStatus', ''),
+            direction=request_params.get('Direction', ''),
+            from_number=request_params.get('From', ''),
+            to_number=request_params.get('To', ''),
+            timestamp=parsedate_to_datetime(timestamp_str),
+            meta_data=event_data
+        )
+
+        return call_event
+        
+    except Exception as e:
+        print(f"Error processing twiml.call event: {e}")
+        database_call_notification(event_data)
+        return None
+
+
+def process_call_event(event_data):
+    """
+    Router function to process call events based on event type.
+    Routes the event to the appropriate handler function.
+    """
+    event_type = event_data.get('type', '')
+    
+    # Route to appropriate handler based on event type
+    if 'status-callback.call' in event_type:
+        return status_callback_call(event_data)
+    elif 'status-callback.conference.participant.updated' in event_type:
+        return status_callback_conference_participant(event_data)
+    elif 'status-callback.conference.updated' in event_type:
+        return status_callback_conference(event_data)
+    elif 'api-request.call' in event_type:
+        return api_request_call(event_data)
+    elif 'api-request.conference-participant.created' in event_type:
+        return api_request_conference_participant_created(event_data)
+    elif 'api-request.conference-participant.modified' in event_type or 'api-request.conference-participant.deleted' in event_type:
+        return api_request_conference_participant_modified(event_data)
+    elif 'twiml.call' in event_type:
+        return twiml_call(event_data)
+    else:
+        print(f"No handler found for call event type: {event_type}")
         return None
 
 
@@ -72,18 +294,6 @@ def process_error_event(event_data):
         except:
             pass
         
-        # Extract HTTP status and webhook URL
-        http_status = None
-        webhook_url = None
-        try:
-            payload = data.get('payload', '')
-            if isinstance(payload, str):
-                payload_json = json.loads(payload)
-                http_status = payload_json.get('status_code')
-                webhook_url = payload_json.get('request_url')
-        except:
-            pass
-        
         error_event = ErrorEvent.objects.create(
             event_id=event_id,
             account_sid=data.get('account_sid', ''),
@@ -91,12 +301,10 @@ def process_error_event(event_data):
             error_code=data.get('error_code', ''),
             severity=data.get('level', 'UNKNOWN'),
             product=data.get('product_name', ''),
-            http_status=http_status,
-            webhook_url=webhook_url,
             error_message=error_message,
             request_sid=data.get('request_sid', ''),
             timestamp=datetime.fromisoformat(event_data.get('time', '').replace('Z', '+00:00')),
-            raw_payload=event_data
+            meta_data=event_data
         )
         print(f"Created error event: {error_event.event_id}")
         return error_event
