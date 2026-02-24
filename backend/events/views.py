@@ -22,6 +22,7 @@ from .models import CallEvent, ErrorEvent
 from .serializers import CallEventSerializer, ErrorEventSerializer
 from .utilities.validators import validate_twilio_webhook
 from .utilities.event_processing import process_call_event, process_error_event
+from .utilities.call_trace import build_call_trace
 from .integrations.slack import twilio_error_notification, webhook_error_notification
 
 from dotenv import load_dotenv
@@ -83,6 +84,19 @@ class CallEventViewSet(viewsets.ReadOnlyModelViewSet):
         return Response({
             'by_event_type': by_event_type
         })
+    
+    @action(detail=False, methods=['get'], url_path='call-trace/(?P<call_sid>[^/.]+)')
+    def call_trace(self, request, call_sid=None):
+        """Get structured call trace for a specific call_sid"""
+        if not call_sid:
+            return Response({'error': 'call_sid is required'}, status=400)
+        
+        trace_data = build_call_trace(call_sid)
+        
+        if trace_data is None:
+            return Response({'error': 'No events found for this call_sid'}, status=404)
+        
+        return Response(trace_data)
     
     def paginate_queryset(self, queryset):
         if self.request.query_params.get('no_pagination') == 'true':
