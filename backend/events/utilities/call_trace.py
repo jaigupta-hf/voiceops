@@ -160,13 +160,19 @@ def format_call_event(event):
         details = {
             'status': event.call_status or 'N/A'
         }
-        # Extract URL last segment
+        # Check request method
+        request_method = meta_data.get('data', {}).get('request', {}).get('method', '')
         request_url = meta_data.get('data', {}).get('request', {}).get('url', '')
+        
         if request_url:
-            # Extract last word before trailing slash
-            url_parts = request_url.rstrip('/').split('/')
-            if url_parts:
-                details['url'] = url_parts[-1]
+            if request_method == 'GET':
+                # For GET requests, show the complete URL
+                details['url'] = request_url
+            else:
+                # For other methods, extract last segment
+                url_parts = request_url.rstrip('/').split('/')
+                if url_parts:
+                    details['url'] = url_parts[-1]
         
         formatted['details'] = details
     
