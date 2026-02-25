@@ -206,13 +206,16 @@ def twiml_call(event_data):
         request_params = data.get('request', {}).get('parameters', {})
         timestamp_str = data.get('requestDateCreated', event_data.get('time', ''))
         
+        # Use CallStatus if present, otherwise fall back to response code
+        call_status = request_params.get('CallStatus') or str(data.get('response', {}).get('responseCode', ''))
+        
         call_event = CallEvent.objects.create(
             event_id=data.get('eventSid', ''),
             account_sid=request_params.get('AccountSid', ''),
             call_sid=request_params.get('CallSid', ''),
             conference_sid='',  # Leave blank for twiml.call events
             event_type=event_data.get('type', ''),
-            call_status=request_params.get('CallStatus', ''),
+            call_status=call_status,
             direction=request_params.get('Direction', ''),
             from_number=request_params.get('From', ''),
             to_number=request_params.get('To', ''),
