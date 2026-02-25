@@ -42,6 +42,12 @@ function App() {
     dateFrom: '',
     dateTo: ''
   })
+  const [appliedErrorFilters, setAppliedErrorFilters] = useState({
+    severity: 'all',
+    errorCode: 'all',
+    dateFrom: '',
+    dateTo: ''
+  })
   const [copiedId, setCopiedId] = useState(null)
   const [selectedCallSid, setSelectedCallSid] = useState(null)
   const [callTimeline, setCallTimeline] = useState(null)
@@ -389,12 +395,18 @@ function App() {
 
   const clearErrorFilters = () => {
     setErrorDateRange('all')
-    setErrorFilters({
+    const defaultFilters = {
       severity: 'all',
       errorCode: 'all',
       dateFrom: '',
       dateTo: ''
-    })
+    }
+    setErrorFilters(defaultFilters)
+    setAppliedErrorFilters(defaultFilters)
+  }
+
+  const applyErrorFilters = () => {
+    setAppliedErrorFilters(errorFilters)
   }
 
   const fetchCallTimeline = async (callSid) => {
@@ -732,10 +744,10 @@ function App() {
   // Apply filters to error events
   const filteredErrorEvents = errorEvents.filter(event => {
     if (selectedAccountSid !== 'all' && event.account_sid !== selectedAccountSid) return false
-    if (errorFilters.severity !== 'all' && event.severity !== errorFilters.severity) return false
-    if (errorFilters.errorCode !== 'all' && event.error_code !== errorFilters.errorCode) return false
+    if (appliedErrorFilters.severity !== 'all' && event.severity !== appliedErrorFilters.severity) return false
+    if (appliedErrorFilters.errorCode !== 'all' && event.error_code !== appliedErrorFilters.errorCode) return false
     
-    if (errorFilters.dateFrom || errorFilters.dateTo) {
+    if (appliedErrorFilters.dateFrom || appliedErrorFilters.dateTo) {
       const eventDate = new Date(event.timestamp)
       // Get date string in local timezone (YYYY-MM-DD)
       const year = eventDate.getFullYear()
@@ -743,10 +755,10 @@ function App() {
       const day = String(eventDate.getDate()).padStart(2, '0')
       const eventDateStr = `${year}-${month}-${day}`
       
-      if (errorFilters.dateFrom && eventDateStr < errorFilters.dateFrom) {
+      if (appliedErrorFilters.dateFrom && eventDateStr < appliedErrorFilters.dateFrom) {
         return false
       }
-      if (errorFilters.dateTo && eventDateStr > errorFilters.dateTo) {
+      if (appliedErrorFilters.dateTo && eventDateStr > appliedErrorFilters.dateTo) {
         return false
       }
     }
@@ -1190,13 +1202,22 @@ function App() {
                       </div>
                     )}
                   </div>
-                  <button
-                    onClick={clearErrorFilters}
-                    className="w-full flex items-center justify-center gap-1 px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full transition-colors"
-                  >
-                    <X className="w-3 h-3" />
-                    Clear Filters
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={applyErrorFilters}
+                      className="flex-1 flex items-center justify-center gap-1 px-2 py-1 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded-full transition-colors"
+                    >
+                      <Filter className="w-3 h-3" />
+                      Apply Filters
+                    </button>
+                    <button
+                      onClick={clearErrorFilters}
+                      className="flex-1 flex items-center justify-center gap-1 px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full transition-colors"
+                    >
+                      <X className="w-3 h-3" />
+                      Clear Filters
+                    </button>
+                  </div>
                 </div>
               </div>
               <div className="flex-1 overflow-y-auto">
