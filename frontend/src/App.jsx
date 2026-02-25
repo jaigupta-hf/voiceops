@@ -52,33 +52,42 @@ function App() {
 
   const getDateRangeForQuickFilter = (range) => {
     const now = new Date()
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+    
+    // Helper to format date as YYYY-MM-DD in local timezone
+    const formatLocalDate = (date) => {
+      const year = date.getFullYear()
+      const month = String(date.getMonth() + 1).padStart(2, '0')
+      const day = String(date.getDate()).padStart(2, '0')
+      return `${year}-${month}-${day}`
+    }
+    
+    const todayStr = formatLocalDate(now)
     let dateFrom, dateTo
 
     switch(range) {
       case 'all':
         return { dateFrom: '', dateTo: '' }
       case 'today':
-        dateFrom = today.toISOString().split('T')[0]
-        dateTo = today.toISOString().split('T')[0]
+        dateFrom = todayStr
+        dateTo = todayStr
         break
       case 'last-1-hour':
-        dateFrom = new Date(now.getTime() - 60 * 60 * 1000).toISOString().split('T')[0]
-        dateTo = today.toISOString().split('T')[0]
+        dateFrom = formatLocalDate(new Date(now.getTime() - 60 * 60 * 1000))
+        dateTo = todayStr
         break
       case 'last-1-week':
-        dateFrom = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
-        dateTo = today.toISOString().split('T')[0]
+        dateFrom = formatLocalDate(new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000))
+        dateTo = todayStr
         break
       case 'this-month':
-        dateFrom = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0]
-        dateTo = today.toISOString().split('T')[0]
+        dateFrom = formatLocalDate(new Date(now.getFullYear(), now.getMonth(), 1))
+        dateTo = todayStr
         break
       case 'last-month':
         const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1)
         const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0)
-        dateFrom = lastMonth.toISOString().split('T')[0]
-        dateTo = lastMonthEnd.toISOString().split('T')[0]
+        dateFrom = formatLocalDate(lastMonth)
+        dateTo = formatLocalDate(lastMonthEnd)
         break
       case 'custom':
       default:
@@ -344,7 +353,7 @@ function App() {
       return <AlertCircle className="w-5 h-5 text-red-500" />
     }
     
-    if (event.call_status === 'completed') {
+    if (event.event_type && event.event_type.includes('status-callback.call.completed')) {
       // Call completed successfully
       return <CheckCircle className="w-5 h-5 text-green-500" />
     }
@@ -691,15 +700,17 @@ function App() {
     
     if (appliedCallFilters.dateFrom || appliedCallFilters.dateTo) {
       const eventDate = new Date(event.timestamp)
-      if (appliedCallFilters.dateFrom) {
-        const fromDate = new Date(appliedCallFilters.dateFrom)
-        fromDate.setHours(0, 0, 0, 0)
-        if (eventDate < fromDate) return false
+      // Get date string in local timezone (YYYY-MM-DD)
+      const year = eventDate.getFullYear()
+      const month = String(eventDate.getMonth() + 1).padStart(2, '0')
+      const day = String(eventDate.getDate()).padStart(2, '0')
+      const eventDateStr = `${year}-${month}-${day}`
+      
+      if (appliedCallFilters.dateFrom && eventDateStr < appliedCallFilters.dateFrom) {
+        return false
       }
-      if (appliedCallFilters.dateTo) {
-        const toDate = new Date(appliedCallFilters.dateTo)
-        toDate.setHours(23, 59, 59, 999)
-        if (eventDate > toDate) return false
+      if (appliedCallFilters.dateTo && eventDateStr > appliedCallFilters.dateTo) {
+        return false
       }
     }
     
@@ -726,15 +737,17 @@ function App() {
     
     if (errorFilters.dateFrom || errorFilters.dateTo) {
       const eventDate = new Date(event.timestamp)
-      if (errorFilters.dateFrom) {
-        const fromDate = new Date(errorFilters.dateFrom)
-        fromDate.setHours(0, 0, 0, 0)
-        if (eventDate < fromDate) return false
+      // Get date string in local timezone (YYYY-MM-DD)
+      const year = eventDate.getFullYear()
+      const month = String(eventDate.getMonth() + 1).padStart(2, '0')
+      const day = String(eventDate.getDate()).padStart(2, '0')
+      const eventDateStr = `${year}-${month}-${day}`
+      
+      if (errorFilters.dateFrom && eventDateStr < errorFilters.dateFrom) {
+        return false
       }
-      if (errorFilters.dateTo) {
-        const toDate = new Date(errorFilters.dateTo)
-        toDate.setHours(23, 59, 59, 999)
-        if (eventDate > toDate) return false
+      if (errorFilters.dateTo && eventDateStr > errorFilters.dateTo) {
+        return false
       }
     }
     
