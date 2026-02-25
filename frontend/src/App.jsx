@@ -244,6 +244,7 @@ function App() {
     const timeString = date.toLocaleTimeString('en-US', { 
       hour: '2-digit', 
       minute: '2-digit',
+      second: '2-digit',
       hour12: true 
     })
     
@@ -258,6 +259,7 @@ function App() {
         year: 'numeric',
         hour: '2-digit', 
         minute: '2-digit',
+        second: '2-digit',
         hour12: true
       })
     }
