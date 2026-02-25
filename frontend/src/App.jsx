@@ -693,10 +693,12 @@ function App() {
       const eventDate = new Date(event.timestamp)
       if (appliedCallFilters.dateFrom) {
         const fromDate = new Date(appliedCallFilters.dateFrom)
+        fromDate.setHours(0, 0, 0, 0)
         if (eventDate < fromDate) return false
       }
       if (appliedCallFilters.dateTo) {
         const toDate = new Date(appliedCallFilters.dateTo)
+        toDate.setHours(23, 59, 59, 999)
         if (eventDate > toDate) return false
       }
     }
@@ -726,10 +728,12 @@ function App() {
       const eventDate = new Date(event.timestamp)
       if (errorFilters.dateFrom) {
         const fromDate = new Date(errorFilters.dateFrom)
+        fromDate.setHours(0, 0, 0, 0)
         if (eventDate < fromDate) return false
       }
       if (errorFilters.dateTo) {
         const toDate = new Date(errorFilters.dateTo)
+        toDate.setHours(23, 59, 59, 999)
         if (eventDate > toDate) return false
       }
     }
