@@ -307,26 +307,26 @@ function App() {
 
   const getCallStatusColor = (status) => {
     const statusMap = {
-      'queued': 'bg-gray-100 text-gray-800 border-gray-300',
-      'initiated': 'bg-blue-100 text-blue-800 border-blue-300',
-      'ringing': 'bg-yellow-100 text-yellow-800 border-yellow-300',
-      'in-progress': 'bg-purple-100 text-purple-800 border-purple-300',
-      'completed': 'bg-green-100 text-green-800 border-green-300',
-      'busy': 'bg-cyan-100 text-cyan-800 border-cyan-300',
-      'no-answer': 'bg-pink-100 text-pink-800 border-pink-300',
-      'canceled': 'bg-slate-100 text-slate-800 border-slate-300',
-      'failed': 'bg-red-100 text-red-800 border-red-300'
+      'queued': 'bg-gray-50 text-gray-700 border-gray-200',
+      'initiated': 'bg-blue-50 text-blue-700 border-blue-200',
+      'ringing': 'bg-amber-50 text-amber-700 border-amber-200',
+      'in-progress': 'bg-indigo-50 text-indigo-700 border-indigo-200',
+      'completed': 'bg-emerald-50 text-emerald-700 border-emerald-200',
+      'busy': 'bg-cyan-50 text-cyan-700 border-cyan-200',
+      'no-answer': 'bg-rose-50 text-rose-700 border-rose-200',
+      'canceled': 'bg-slate-50 text-slate-700 border-slate-200',
+      'failed': 'bg-red-50 text-red-700 border-red-200'
     }
-    return statusMap[status?.toLowerCase()] || 'bg-gray-100 text-gray-800 border-gray-300'
+    return statusMap[status?.toLowerCase()] || 'bg-gray-50 text-gray-700 border-gray-200'
   }
 
   const getSeverityColor = (severity) => {
     const colors = {
-      ERROR: 'bg-red-100 text-red-800 border-red-200',
-      WARNING: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-      INFO: 'bg-blue-100 text-blue-800 border-blue-200',
+      ERROR: 'bg-red-50 text-red-700 border-red-200',
+      WARNING: 'bg-amber-50 text-amber-700 border-amber-200',
+      INFO: 'bg-blue-50 text-blue-700 border-blue-200',
     }
-    return colors[severity] || 'bg-gray-100 text-gray-800 border-gray-200'
+    return colors[severity] || 'bg-gray-50 text-gray-700 border-gray-200'
   }
 
   const copyToClipboard = (text) => {
@@ -431,12 +431,12 @@ function App() {
               </span>
             )}
             {details.error_code && (
-              <span className="px-2.5 py-1 text-xs font-medium rounded-full border border-gray-300 bg-gray-50 text-gray-800">
+              <span className="px-2.5 py-1 text-xs font-medium rounded-full border border-gray-200 bg-gray-50 text-gray-700">
                 {details.error_code}
               </span>
             )}
             {details.product && (
-              <span className="px-2.5 py-1 text-xs font-medium rounded-full border border-orange-300 bg-orange-50 text-orange-800">
+              <span className="px-2.5 py-1 text-xs font-medium rounded-full border border-orange-200 bg-orange-50 text-orange-700">
                 {details.product}
               </span>
             )}
@@ -472,7 +472,7 @@ function App() {
             </span>
           )}
           {details.url && (
-            <span className="px-2.5 py-1 text-xs font-medium rounded-full border border-indigo-300 bg-indigo-50 text-indigo-800"> 
+            <span className="px-2.5 py-1 text-xs font-medium rounded-full border border-indigo-200 bg-indigo-50 text-indigo-700"> 
               {details.url}
             </span>
           )}
@@ -760,7 +760,7 @@ function App() {
                 <select
                   value={selectedAccountSid}
                   onChange={(e) => setSelectedAccountSid(e.target.value)}
-                  className="px-3 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="px-3 py-1 text-sm border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   {uniqueAccountSids.map(sid => (
                     <option key={sid} value={sid}>
@@ -782,7 +782,7 @@ function App() {
           {/* Left 75% - Call Events */}
           <div className="lg:col-span-3 h-full flex flex-col overflow-hidden">
             {/* Call Events Table */}
-            <div className="bg-white rounded-lg shadow border border-gray-200 h-full flex flex-col overflow-hidden">
+            <div className="bg-white rounded-xl shadow border border-gray-200 h-full flex flex-col overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
@@ -798,11 +798,11 @@ function App() {
                       value={callSidSearch}
                       onChange={(e) => setCallSidSearch(e.target.value)}
                       placeholder="Search by Call SID..."
-                      className="px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="px-3 py-1.5 text-sm border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                     <button
                       type="submit"
-                      className="px-3 py-1.5 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors"
+                      className="px-3 py-1.5 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-full transition-colors"
                     >
                       Search
                     </button>
@@ -811,14 +811,14 @@ function App() {
                 <div className="flex gap-2">
                   <button
                     onClick={applyCallFilters}
-                    className="flex items-center gap-1 px-3 py-1.5 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors"
+                    className="flex items-center gap-1 px-3 py-1.5 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-full transition-colors"
                   >
                     <Filter className="w-4 h-4" />
                     Apply Filters
                   </button>
                   <button
                     onClick={clearCallFilters}
-                    className="flex items-center gap-1 px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md transition-colors"
+                    className="flex items-center gap-1 px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full transition-colors"
                   >
                     <X className="w-4 h-4" />
                     Clear Filters
@@ -835,7 +835,7 @@ function App() {
                     <select
                       value={callDateRange}
                       onChange={(e) => handleCallDateRangeChange(e.target.value)}
-                      className="w-full text-sm px-2 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full text-sm px-2 py-1.5 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="all">All Time</option>
                       <option value="today">Today</option>
@@ -846,7 +846,7 @@ function App() {
                       <option value="custom">Custom Range</option>
                     </select>
                     {callDateRange === 'custom' && (
-                      <div className="mt-3 p-4 bg-white border border-blue-200 rounded-lg shadow-sm space-y-3">
+                      <div className="mt-3 p-4 bg-white border border-blue-200 rounded-xl shadow-sm space-y-3">
                         <div className="space-y-2">
                           <label className="block text-xs font-semibold text-gray-700 mb-1.5">Start Date & Time</label>
                           <div className="grid grid-cols-2 gap-2">
@@ -859,7 +859,7 @@ function App() {
                                   const time = callFilters.dateFrom ? callFilters.dateFrom.split('T')[1] : '00:00'
                                   setCallFilters({...callFilters, dateFrom: e.target.value ? `${e.target.value}T${time}` : ''})
                                 }}
-                                className="w-full text-sm px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                className="w-full text-sm px-3 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                               />
                             </div>
                             <div>
@@ -871,7 +871,7 @@ function App() {
                                   const date = callFilters.dateFrom ? callFilters.dateFrom.split('T')[0] : new Date().toISOString().split('T')[0]
                                   setCallFilters({...callFilters, dateFrom: `${date}T${e.target.value}`})
                                 }}
-                                className="w-full text-sm px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                className="w-full text-sm px-3 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                               />
                             </div>
                           </div>
@@ -888,7 +888,7 @@ function App() {
                                   const time = callFilters.dateTo ? callFilters.dateTo.split('T')[1] : '23:59'
                                   setCallFilters({...callFilters, dateTo: e.target.value ? `${e.target.value}T${time}` : ''})
                                 }}
-                                className="w-full text-sm px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                className="w-full text-sm px-3 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                               />
                             </div>
                             <div>
@@ -900,7 +900,7 @@ function App() {
                                   const date = callFilters.dateTo ? callFilters.dateTo.split('T')[0] : new Date().toISOString().split('T')[0]
                                   setCallFilters({...callFilters, dateTo: `${date}T${e.target.value}`})
                                 }}
-                                className="w-full text-sm px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                className="w-full text-sm px-3 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                               />
                             </div>
                           </div>
@@ -913,7 +913,7 @@ function App() {
                     <select
                       value={callFilters.callStatus}
                       onChange={(e) => setCallFilters({...callFilters, callStatus: e.target.value})}
-                      className="w-full text-sm px-2 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full text-sm px-2 py-1.5 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="all">All Status</option>
                       <option value="queued">Queued</option>
@@ -932,7 +932,7 @@ function App() {
                     <select
                       value={callFilters.direction}
                       onChange={(e) => setCallFilters({...callFilters, direction: e.target.value})}
-                      className="w-full text-sm px-2 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full text-sm px-2 py-1.5 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="all">All Directions</option>
                       <option value="inbound">Inbound</option>
@@ -947,7 +947,7 @@ function App() {
                       value={callFilters.fromNumber}
                       onChange={(e) => setCallFilters({...callFilters, fromNumber: e.target.value})}
                       placeholder="Enter from number..."
-                      className="w-full text-sm px-2 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full text-sm px-2 py-1.5 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                   <div>
@@ -957,7 +957,7 @@ function App() {
                       value={callFilters.toNumber}
                       onChange={(e) => setCallFilters({...callFilters, toNumber: e.target.value})}
                       placeholder="Enter to number..."
-                      className="w-full text-sm px-2 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full text-sm px-2 py-1.5 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                   <div>
@@ -965,7 +965,7 @@ function App() {
                     <select
                       value={callFilters.eventType}
                       onChange={(e) => setCallFilters({...callFilters, eventType: e.target.value})}
-                      className="w-full text-sm px-2 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full text-sm px-2 py-1.5 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="all">All Event Types</option>
                       {Object.entries(eventTypeCategories).map(([key, category]) => (
@@ -1035,7 +1035,7 @@ function App() {
                               </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
-                              <span className={`px-2 py-1 text-xs font-medium rounded-md border ${getCallStatusColor(event.call_status)}`}>
+                              <span className={`inline-block w-20 text-center px-2 py-1 text-xs font-medium rounded-full border ${getCallStatusColor(event.call_status)}`}>
                                 {event.call_status}
                               </span>
                             </td>
@@ -1049,7 +1049,7 @@ function App() {
                               </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
-                              <span className="px-2 py-1 text-xs font-medium rounded-md border bg-gray-50 text-gray-700 border-gray-300">
+                              <span className="px-2 py-1 text-xs font-medium rounded-full border bg-gray-50 text-gray-700 border-gray-300">
                                 {formatEventType(event.event_type)}
                               </span>
                             </td>
@@ -1065,7 +1065,7 @@ function App() {
 
           {/* Right 25% - Error Events (Full Height) */}
           <div className="lg:col-span-1 h-full overflow-hidden">
-            <div className="bg-white rounded-lg shadow border border-gray-200 h-full flex flex-col overflow-hidden">
+            <div className="bg-white rounded-xl shadow border border-gray-200 h-full flex flex-col overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-200">
                 <div className="flex items-center justify-between mb-3">
                   <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
@@ -1078,7 +1078,7 @@ function App() {
                     <select
                       value={errorFilters.severity}
                       onChange={(e) => setErrorFilters({...errorFilters, severity: e.target.value})}
-                      className="flex-1 text-xs px-2 py-1 border border-gray-300 rounded"
+                      className="flex-1 text-xs px-2 py-1 border border-gray-300 rounded-full"
                     >
                       <option value="all">All Severities</option>
                       {uniqueSeverities.filter(s => s !== 'all').map(severity => (
@@ -1088,7 +1088,7 @@ function App() {
                     <select
                       value={errorFilters.errorCode}
                       onChange={(e) => setErrorFilters({...errorFilters, errorCode: e.target.value})}
-                      className="flex-1 text-xs px-2 py-1 border border-gray-300 rounded"
+                      className="flex-1 text-xs px-2 py-1 border border-gray-300 rounded-full"
                     >
                       <option value="all">All Codes</option>
                       {uniqueErrorCodes.filter(c => c !== 'all').map(code => (
@@ -1100,7 +1100,7 @@ function App() {
                     <select
                       value={errorDateRange}
                       onChange={(e) => handleErrorDateRangeChange(e.target.value)}
-                      className="w-full text-xs px-2 py-1 border border-gray-300 rounded"
+                      className="w-full text-xs px-2 py-1 border border-gray-300 rounded-full"
                     >
                       <option value="all">All Time</option>
                       <option value="today">Today</option>
@@ -1111,7 +1111,7 @@ function App() {
                       <option value="custom">Custom Range</option>
                     </select>
                     {errorDateRange === 'custom' && (
-                      <div className="p-3 bg-white border border-blue-200 rounded-lg shadow-sm space-y-3">
+                      <div className="p-3 bg-white border border-blue-200 rounded-xl shadow-sm space-y-3">
                         <div className="space-y-2">
                           <label className="block text-xs font-semibold text-gray-700 mb-1">Start Date & Time</label>
                           <div className="grid grid-cols-2 gap-2">
@@ -1124,7 +1124,7 @@ function App() {
                                   const time = errorFilters.dateFrom ? errorFilters.dateFrom.split('T')[1] : '00:00'
                                   setErrorFilters({...errorFilters, dateFrom: e.target.value ? `${e.target.value}T${time}` : ''})
                                 }}
-                                className="w-full text-xs px-2 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                className="w-full text-xs px-2 py-1.5 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                               />
                             </div>
                             <div>
@@ -1136,7 +1136,7 @@ function App() {
                                   const date = errorFilters.dateFrom ? errorFilters.dateFrom.split('T')[0] : new Date().toISOString().split('T')[0]
                                   setErrorFilters({...errorFilters, dateFrom: `${date}T${e.target.value}`})
                                 }}
-                                className="w-full text-xs px-2 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                className="w-full text-xs px-2 py-1.5 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                               />
                             </div>
                           </div>
@@ -1153,7 +1153,7 @@ function App() {
                                   const time = errorFilters.dateTo ? errorFilters.dateTo.split('T')[1] : '23:59'
                                   setErrorFilters({...errorFilters, dateTo: e.target.value ? `${e.target.value}T${time}` : ''})
                                 }}
-                                className="w-full text-xs px-2 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                className="w-full text-xs px-2 py-1.5 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                               />
                             </div>
                             <div>
@@ -1165,7 +1165,7 @@ function App() {
                                   const date = errorFilters.dateTo ? errorFilters.dateTo.split('T')[0] : new Date().toISOString().split('T')[0]
                                   setErrorFilters({...errorFilters, dateTo: `${date}T${e.target.value}`})
                                 }}
-                                className="w-full text-xs px-2 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                className="w-full text-xs px-2 py-1.5 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                               />
                             </div>
                           </div>
@@ -1175,7 +1175,7 @@ function App() {
                   </div>
                   <button
                     onClick={clearErrorFilters}
-                    className="w-full flex items-center justify-center gap-1 px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 rounded transition-colors"
+                    className="w-full flex items-center justify-center gap-1 px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full transition-colors"
                   >
                     <X className="w-3 h-3" />
                     Clear Filters
@@ -1193,10 +1193,10 @@ function App() {
                       <div key={event.event_id} className="px-6 py-4 hover:bg-gray-50 transition-colors">
                         <div className="flex items-start justify-between mb-2">
                           <div className="flex items-center gap-2">
-                            <span className={`px-2 py-1 text-xs font-medium rounded-md border ${getSeverityColor(event.severity)}`}>
+                            <span className={`px-2 py-1 text-xs font-medium rounded-full border ${getSeverityColor(event.severity)}`}>
                               {event.severity}
                             </span>
-                            <span className="px-2 py-1 text-xs font-medium rounded-md border border-gray-300 bg-gray-50 text-gray-700">
+                            <span className="px-2 py-1 text-xs font-medium rounded-full border border-gray-300 bg-gray-50 text-gray-700">
                               {event.error_code}
                             </span>
                           </div>
@@ -1268,7 +1268,7 @@ function App() {
               ) : callTimeline ? (
                 <div className="space-y-6">
                   {/* Header Section */}
-                  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 border-2 border-blue-200">
+                  <div className="bg-gradient-to-r from-gray-50 to-slate-50 rounded-xl p-6 border border-gray-200 shadow-sm">
                     <div className="space-y-4">
                       {/* Call SID and Final Status in one row */}
                       <div className="flex items-start gap-6">
@@ -1276,7 +1276,7 @@ function App() {
                         <div>
                           <span className="text-base font-semibold text-gray-800">Call SID</span>
                           <div className="flex items-center gap-2 mt-2">
-                            <code className="text-xl bg-white px-4 py-2 rounded border border-blue-300 font-mono">
+                            <code className="text-md bg-white px-4 py-2 rounded-full border border-gray-300 font-mono">
                               {callTimeline.header.call_sid}
                             </code>
                             <button
@@ -1296,7 +1296,7 @@ function App() {
                         <div>
                           <span className="text-base font-semibold text-gray-800">Final Status</span>
                           <div className="mt-2">
-                            <span className={`px-4 py-2 text-xl font-medium rounded border inline-block ${getCallStatusColor(callTimeline.header.final_status)}`}>
+                            <span className={`px-4 py-2 text-md font-medium rounded-full border inline-block ${getCallStatusColor(callTimeline.header.final_status)}`}>
                               {callTimeline.header.final_status}
                             </span>
                           </div>
@@ -1305,10 +1305,10 @@ function App() {
                       
                       {/* Direction, From → To - Pills in one line */}
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="px-2.5 py-1 text-xs font-medium rounded-full border border-purple-300 bg-purple-50 text-purple-800 capitalize">
+                        <span className="px-2.5 py-1 text-xs font-medium rounded-full border border-gray-300 bg-gray-100 text-gray-700 capitalize">
                           {callTimeline.header.direction}
                         </span>
-                        <span className="px-2.5 py-1 text-xs font-medium rounded-full border border-green-300 bg-green-50 text-green-800">
+                        <span className="px-2.5 py-1 text-xs font-medium rounded-full border border-gray-300 bg-gray-100 text-gray-700">
                           {callTimeline.header.from_number} → {callTimeline.header.to_number}
                         </span>
                       </div>
@@ -1324,20 +1324,20 @@ function App() {
                       <div key={`${event.category}-${index}`} className="relative pl-12 pb-8">
                         {/* Timeline dot - centered vertically */}
                         <div className={`absolute left-2.5 top-6 w-3 h-3 rounded-full border-2 border-white ${
-                          event.category === 'error' ? 'bg-red-500' : 'bg-blue-500'
+                          event.category === 'error' ? 'bg-red-400' : 'bg-slate-400'
                         }`}></div>
                         
-                        <div className={`p-4 rounded-lg border-2 ${
+                        <div className={`p-4 rounded-lg border shadow-sm ${
                           event.category === 'error' 
-                            ? 'bg-red-50 border-red-200' 
-                            : 'bg-blue-50 border-blue-200'
+                            ? 'bg-white border-red-200' 
+                            : 'bg-white border-gray-200'
                         }`}>
                           <div className="flex items-start justify-between mb-3">
                             <div className="flex items-center gap-2">
                               {event.category === 'error' ? (
-                                <AlertCircle className="w-5 h-5 text-red-600" />
+                                <AlertCircle className="w-5 h-5 text-red-500" />
                               ) : (
-                                <Phone className="w-5 h-5 text-blue-600" />
+                                <Phone className="w-5 h-5 text-slate-500" />
                               )}
                               <span className="font-semibold text-gray-900">
                                 {formatEventType(event.event_type)}
@@ -1349,7 +1349,7 @@ function App() {
                               </span>
                               <button
                                 onClick={() => setSelectedPayload(event.payload)}
-                                className="text-xs px-2 py-1 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 rounded transition-colors"
+                                className="text-xs px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full transition-colors border border-gray-300"
                               >
                                 Payload
                               </button>
