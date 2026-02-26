@@ -1285,7 +1285,7 @@ function App() {
       {/* Call Timeline Modal */}
       {selectedCallSid && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={closeTimeline}>
-          <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-hidden flex" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-white rounded-xl shadow-xl max-w-6xl w-full max-h-[90vh] overflow-hidden flex" onClick={(e) => e.stopPropagation()}>
             {/* Main Content */}
             <div className={`flex-1 flex flex-col ${selectedPayload ? 'max-w-[60%]' : 'w-full'}`}>
               <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
@@ -1365,7 +1365,7 @@ function App() {
                           event.category === 'error' ? 'bg-red-400' : 'bg-slate-400'
                         }`}></div>
                         
-                        <div className={`p-4 rounded-lg border shadow-sm ${
+                        <div className={`p-4 rounded-xl border shadow-sm ${
                           event.category === 'error' 
                             ? 'bg-white border-red-200' 
                             : 'bg-white border-gray-200'
@@ -1422,13 +1422,13 @@ function App() {
                   <h3 className="text-lg font-semibold text-gray-900">Event Payload</h3>
                   <button
                     onClick={() => setSelectedPayload(null)}
-                    className="p-1 hover:bg-gray-100 rounded transition-colors"
+                    className="p-1 hover:bg-gray-100 rounded-full transition-colors"
                   >
                     <X className="w-4 h-4" />
                   </button>
                 </div>
                 <div className="flex-1 overflow-y-auto p-4">
-                  <pre className="bg-gray-900 text-green-400 p-4 rounded text-xs font-mono overflow-x-auto">
+                  <pre className="bg-gray-900 text-green-400 p-4 rounded-xl text-xs font-mono overflow-x-auto">
                     {JSON.stringify(selectedPayload, null, 2)}
                   </pre>
                 </div>
