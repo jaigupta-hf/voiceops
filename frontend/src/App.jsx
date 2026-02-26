@@ -51,6 +51,7 @@ function App() {
   const [copiedId, setCopiedId] = useState(null)
   const [selectedCallSid, setSelectedCallSid] = useState(null)
   const [callTimeline, setCallTimeline] = useState(null)
+  const [conferenceTimeline, setConferenceTimeline] = useState(null)
   const [loadingTimeline, setLoadingTimeline] = useState(false)
   const [selectedStatusFilter, setSelectedStatusFilter] = useState('all')
   const [callSidSearch, setCallSidSearch] = useState('')
@@ -325,12 +326,16 @@ function App() {
       'queued': 'bg-gray-50 text-gray-700 border-gray-200',
       'initiated': 'bg-blue-50 text-blue-700 border-blue-200',
       'ringing': 'bg-amber-50 text-amber-700 border-amber-200',
-      'in-progress': 'bg-indigo-50 text-indigo-700 border-indigo-200',
+      'busy': 'bg-indigo-50 text-indigo-700 border-indigo-200',
       'completed': 'bg-emerald-50 text-emerald-700 border-emerald-200',
-      'busy': 'bg-cyan-50 text-cyan-700 border-cyan-200',
+      'in-progress': 'bg-cyan-50 text-cyan-700 border-cyan-200',
       'no-answer': 'bg-rose-50 text-rose-700 border-rose-200',
       'canceled': 'bg-slate-50 text-slate-700 border-slate-200',
-      'failed': 'bg-red-50 text-red-700 border-red-200'
+      'failed': 'bg-red-50 text-red-700 border-red-200',
+      'conference-start': 'bg-blue-50 text-blue-700 border-blue-200',
+      'conference-end': 'bg-emerald-50 text-emerald-700 border-emerald-200',
+      'participant-join': 'bg-cyan-50 text-cyan-700 border-cyan-200',
+      'participant-leave': 'bg-indigo-50 text-indigo-700 border-indigo-200',
     }
     return statusMap[status?.toLowerCase()] || 'bg-gray-50 text-gray-700 border-gray-200'
   }
@@ -412,6 +417,7 @@ function App() {
   const fetchCallTimeline = async (callSid) => {
     setLoadingTimeline(true)
     setSelectedCallSid(callSid)
+    setConferenceTimeline(null) // Reset conference timeline
     try {
       // Fetch structured call trace from backend
       const response = await fetch(`${API_BASE_URL}/call-events/call-trace/${callSid}/`)
@@ -419,6 +425,22 @@ function App() {
       if (response.ok) {
         const data = await response.json()
         setCallTimeline(data)
+        
+        // Check if any event has a conference_sid
+        let conferenceSid = null
+        if (data && data.events) {
+          for (const event of data.events) {
+            if (event.details && event.details.conference_sid && event.details.conference_sid !== 'N/A') {
+              conferenceSid = event.details.conference_sid
+              break
+            }
+          }
+        }
+        
+        // If conference_sid found, fetch conference trace
+        if (conferenceSid) {
+          fetchConferenceTimeline(conferenceSid)
+        }
       } else {
         console.error('Error fetching call trace:', response.statusText)
         setCallTimeline(null)
@@ -431,9 +453,27 @@ function App() {
     }
   }
 
+  const fetchConferenceTimeline = async (conferenceSid) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/call-events/conference-trace/${conferenceSid}/`)
+      
+      if (response.ok) {
+        const data = await response.json()
+        setConferenceTimeline(data)
+      } else {
+        console.error('Error fetching conference trace:', response.statusText)
+        setConferenceTimeline(null)
+      }
+    } catch (error) {
+      console.error('Error fetching conference timeline:', error)
+      setConferenceTimeline(null)
+    }
+  }
+
   const closeTimeline = () => {
     setSelectedCallSid(null)
     setCallTimeline(null)
+    setConferenceTimeline(null)
     setSelectedPayload(null)
   }
 
@@ -493,7 +533,7 @@ function App() {
             </span>
           )}
           {details.url && (
-            <span className="px-2.5 py-1 text-xs font-medium rounded-full border border-indigo-200 bg-indigo-50 text-indigo-700"> 
+            <span className="px-2.5 py-1 text-xs font-medium rounded-full border bg-slate-50 text-slate-700 border-slate-200"> 
               {details.url}
             </span>
           )}
@@ -505,10 +545,19 @@ function App() {
     if (event.event_type && event.event_type.includes('status-callback.conference.participant')) {
       // Extract boolean fields for special rendering
       const booleanFields = ['hold', 'muted', 'coaching']
-      const otherFields = Object.entries(details).filter(([key]) => !booleanFields.includes(key))
+      const excludedFields = ['conference_sid', 'friendly_name', 'status']
+      const otherFields = Object.entries(details).filter(([key]) => !booleanFields.includes(key) && !excludedFields.includes(key))
       
       return (
         <div className="space-y-2 text-sm">
+          {/* Status pill */}
+          {details.status && (
+            <div className="flex gap-2 flex-wrap">
+              <span className={`px-2.5 py-1 text-xs font-medium rounded-full border ${getCallStatusColor(details.status)}`}>
+                {details.status}
+              </span>
+            </div>
+          )}
           {/* Render other fields normally */}
           {otherFields.map(([key, value]) => {
             if (!value || value === 'N/A') return null
@@ -559,14 +608,58 @@ function App() {
       )
     }
     
+    // Special rendering for status-callback.conference events (not participant)
+    if (event.event_type && event.event_type.includes('status-callback.conference') && !event.event_type.includes('participant')) {
+      // Exclude conference_sid and friendly_name
+      const excludedFields = ['conference_sid', 'friendly_name', 'status']
+      const filteredFields = Object.entries(details).filter(([key]) => !excludedFields.includes(key))
+      
+      return (
+        <div className="space-y-2 text-sm">
+          {/* Status pill */}
+          {details.status && (
+            <div className="flex gap-2 flex-wrap">
+              <span className={`px-2.5 py-1 text-xs font-medium rounded-full border ${getCallStatusColor(details.status)}`}>
+                {details.status}
+              </span>
+            </div>
+          )}
+          {filteredFields.map(([key, value]) => {
+            if (!value || value === 'N/A') return null
+            
+            const formattedKey = key
+              .split('_')
+              .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+              .join(' ')
+            
+            return (
+              <div key={key} className="flex gap-2">
+                <span className="font-medium text-gray-700">{formattedKey}:</span>
+                <span className="text-gray-900">{value.toString()}</span>
+              </div>
+            )
+          })}
+        </div>
+      )
+    }
+    
     // Special rendering for api-request.conference-participant events (created, modified, deleted)
     if (event.event_type && event.event_type.includes('api-request.conference-participant')) {
       // Extract boolean fields for special rendering
       const booleanFields = ['hold', 'muted', 'coaching']
-      const otherFields = Object.entries(details).filter(([key]) => !booleanFields.includes(key))
+      const excludedFields = ['status']
+      const otherFields = Object.entries(details).filter(([key]) => !booleanFields.includes(key) && !excludedFields.includes(key))
       
       return (
         <div className="space-y-2 text-sm">
+          {/* Status pill */}
+          {details.status && (
+            <div className="flex gap-2 flex-wrap">
+              <span className={`px-2.5 py-1 text-xs font-medium rounded-full border ${getCallStatusColor(details.status)}`}>
+                {details.status}
+              </span>
+            </div>
+          )}
           {/* Render other fields normally */}
           {otherFields.map(([key, value]) => {
             if (!value || value === 'N/A') return null
@@ -1068,7 +1161,7 @@ function App() {
                                 {event.call_status}
                               </span>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 capitalize">
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                               {event.direction || '-'}
                             </td>
                             <td className="px-6 py-4">
@@ -1334,7 +1427,7 @@ function App() {
                             {callTimeline.header.participant_label}
                           </span>
                         )}
-                        <span className="px-2.5 py-1 text-xs font-medium rounded-full border border-gray-300 bg-gray-100 text-gray-700 capitalize">
+                        <span className="px-2.5 py-1 text-xs font-medium rounded-full border border-gray-300 bg-gray-100 text-gray-700">
                           {callTimeline.header.direction}
                         </span>
                         <span className="px-2.5 py-1 text-xs font-medium rounded-full border border-gray-300 bg-gray-100 text-gray-700">
@@ -1400,6 +1493,102 @@ function App() {
                       </div>
                     )}
                   </div>
+
+                  {/* Conference Trace Section */}
+                  {conferenceTimeline && (
+                    <div className="space-y-4 mt-8">
+                      {/* Conference Header */}
+                      <div className="bg-gradient-to-r from-gray-50 to-slate-50 rounded-xl p-6 border border-indigo-200 shadow-sm">
+                        <div className="space-y-4">
+                          <div className="flex items-center gap-3">
+                            <span className="text-base font-semibold text-gray-800">Conference SID: </span>
+                            <code className="text-md bg-white px-4 py-2 rounded-full border border-gray-300 font-mono">
+                              {conferenceTimeline.header.conference_sid}
+                            </code>
+                            <button
+                              onClick={() => copyToClipboard(conferenceTimeline.header.conference_sid)}
+                              className="p-1 hover:bg-white rounded transition-colors"
+                            >
+                              {copiedId === conferenceTimeline.header.conference_sid ? (
+                                <Check className="w-4 h-4 text-green-600" />
+                              ) : (
+                                <Copy className="w-4 h-4 text-gray-600" />
+                              )}
+                            </button>
+                          </div>
+                          
+                          <div className="flex items-center gap-2 flex-wrap">
+                            {conferenceTimeline.header.friendly_name && (
+                              <span className="px-2.5 py-1 text-xs font-medium rounded-full border border-gray-300 bg-gray-100 text-gray-700">
+                                {conferenceTimeline.header.friendly_name}
+                              </span>
+                            )}
+                            {conferenceTimeline.header.reason_ended && (
+                              <span className="px-2.5 py-1 text-xs font-medium rounded-full border border-orange-200 bg-orange-50 text-orange-700">
+                                Reason: {conferenceTimeline.header.reason_ended}
+                              </span>
+                            )}
+                            {conferenceTimeline.header.ended_by && (
+                              <span className="px-2.5 py-1 text-xs font-medium rounded-full border border-purple-200 bg-purple-50 text-purple-700">
+                                Ended by: {conferenceTimeline.header.ended_by}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Conference Events Timeline */}
+                      <div className="relative">
+                        <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-indigo-300"></div>
+                        
+                        {conferenceTimeline.events.map((event, index) => (
+                          <div key={`conference-${event.category}-${index}`} className="relative pl-12 pb-4">
+                            <div className={`absolute left-2.5 top-6 w-3 h-3 rounded-full border-2 border-white ${
+                              event.category === 'error' ? 'bg-red-400' : 'bg-indigo-400'
+                            }`}></div>
+                            
+                            <div className={`p-4 rounded-xl border shadow-sm ${
+                              event.category === 'error' 
+                                ? 'bg-white border-red-200' 
+                                : 'bg-white border-indigo-200'
+                            }`}>
+                              <div className="flex items-start justify-between mb-2">
+                                <div className="flex items-center gap-2">
+                                  {event.category === 'error' ? (
+                                    <AlertCircle className="w-5 h-5 text-red-500" />
+                                  ) : (
+                                    <Phone className="w-5 h-5 text-indigo-500" />
+                                  )}
+                                  <span className="font-semibold text-gray-900">
+                                    {formatEventType(event.event_type)}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-sm text-gray-600">
+                                    {formatTimestamp(event.timestamp)}
+                                  </span>
+                                  <button
+                                    onClick={() => setSelectedPayload(event.payload)}
+                                    className="text-xs px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full transition-colors border border-gray-300"
+                                  >
+                                    Payload
+                                  </button>
+                                </div>
+                              </div>
+                              
+                              {renderEventDetails(event)}
+                            </div>
+                          </div>
+                        ))}
+                        
+                        {conferenceTimeline.events.length === 0 && (
+                          <div className="text-center py-8 text-gray-500">
+                            No conference events found
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="text-center py-8 text-gray-500">

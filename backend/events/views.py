@@ -22,7 +22,7 @@ from .models import CallEvent, ErrorEvent
 from .serializers import CallEventSerializer, ErrorEventSerializer
 from .utilities.validators import validate_twilio_webhook
 from .utilities.event_processing import process_call_event, process_error_event
-from .utilities.call_trace import build_call_trace
+from .utilities.call_trace import build_call_trace, build_conference_trace
 from .integrations.slack import twilio_error_notification, webhook_error_notification
 
 from dotenv import load_dotenv
@@ -95,6 +95,19 @@ class CallEventViewSet(viewsets.ReadOnlyModelViewSet):
         
         if trace_data is None:
             return Response({'error': 'No events found for this call_sid'}, status=404)
+        
+        return Response(trace_data)
+    
+    @action(detail=False, methods=['get'], url_path='conference-trace/(?P<conference_sid>[^/.]+)')
+    def conference_trace(self, request, conference_sid=None):
+        """Get structured conference trace for a specific conference_sid"""
+        if not conference_sid:
+            return Response({'error': 'conference_sid is required'}, status=400)
+        
+        trace_data = build_conference_trace(conference_sid)
+        
+        if trace_data is None:
+            return Response({'error': 'No events found for this conference_sid'}, status=404)
         
         return Response(trace_data)
     

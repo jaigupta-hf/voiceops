@@ -207,3 +207,68 @@ def format_error_event(error_event):
         },
         'payload': error_event.meta_data or {}
     }
+
+
+def build_conference_trace(conference_sid):
+    """
+    Build a structured conference trace for a given conference_sid.
+    Fetches all events from the database and formats them according to event type.
+    
+    Returns a dictionary with:
+    - header: Conference SID, friendly name (if available)
+    - events: List of formatted events with timestamp and type-specific details
+    """
+    # Fetch all conference events for this conference_sid
+    conference_events = CallEvent.objects.filter(conference_sid=conference_sid).order_by('timestamp')
+    
+    if not conference_events.exists():
+        return None
+    
+    # Extract friendly name if available from any event
+    friendly_name = None
+    for event in conference_events:
+        meta_data = event.meta_data or {}
+        request_params = meta_data.get('data', {}).get('request', {}).get('parameters', {})
+        friendly_name = request_params.get('FriendlyName')
+        if friendly_name:
+            break
+    
+    # Extract reason ended and ended by from last status-callback.conference.updated event
+    reason_ended = None
+    ended_by = None
+
+    # Iterate in reverse to get the last occurrence
+    for event in reversed(list(conference_events)):
+        meta_data = event.meta_data or {}
+        request_params = meta_data.get('data', {}).get('request', {}).get('parameters', {})
+        reason_ended = request_params.get('ReasonConferenceEnded')
+        ended_by = request_params.get('CallSidEndingConference')
+        if reason_ended: 
+            break
+    
+    # Build header
+    header = {
+        'conference_sid': conference_sid,
+    }
+    
+    if friendly_name:
+        header['friendly_name'] = friendly_name
+    if reason_ended:
+        header['reason_ended'] = reason_ended
+    if ended_by:
+        header['ended_by'] = ended_by
+    
+    # Build events list
+    events = []
+    for event in conference_events:
+        formatted_event = format_call_event(event)
+        if formatted_event:
+            events.append(formatted_event)
+    
+    # Sort all events by timestamp
+    events.sort(key=lambda x: x['timestamp'])
+    
+    return {
+        'header': header,
+        'events': events
+    }
