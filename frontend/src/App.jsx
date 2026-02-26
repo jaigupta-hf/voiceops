@@ -1309,38 +1309,24 @@ function App() {
                   <div className="bg-gradient-to-r from-gray-50 to-slate-50 rounded-xl p-6 border border-gray-200 shadow-sm">
                     <div className="space-y-4">
                       {/* Call SID and Final Status in one row */}
-                      <div className="flex items-start gap-6">
+                      <div className="flex items-center gap-3">
                         {/* Call SID */}
-                        <div>
-                          <span className="text-base font-semibold text-gray-800">Call SID</span>
-                          <div className="flex items-center gap-2 mt-2">
-                            <code className="text-md bg-white px-4 py-2 rounded-full border border-gray-300 font-mono">
-                              {callTimeline.header.call_sid}
-                            </code>
-                            <button
-                              onClick={() => copyToClipboard(callTimeline.header.call_sid)}
-                              className="p-1 hover:bg-white rounded transition-colors"
-                            >
-                              {copiedId === callTimeline.header.call_sid ? (
-                                <Check className="w-4 h-4 text-green-600" />
-                              ) : (
-                                <Copy className="w-4 h-4 text-gray-600" />
-                              )}
-                            </button>
-                          </div>
-                        </div>
-                        
-                        {/* Final Status */}
-                        <div>
-                          <span className="text-base font-semibold text-gray-800">Final Status</span>
-                          <div className="mt-2">
-                            <span className={`px-4 py-2 text-md font-medium rounded-full border inline-block ${getCallStatusColor(callTimeline.header.final_status)}`}>
-                              {callTimeline.header.final_status}
-                            </span>
-                          </div>
-                        </div>
+                        <span className="text-lg font-semibold text-gray-800">Call SID: </span>
+                        <code className="text-md bg-white px-4 py-2 rounded-full border border-gray-300 font-mono">
+                          {callTimeline.header.call_sid}
+                        </code>
+                        <button
+                          onClick={() => copyToClipboard(callTimeline.header.call_sid)}
+                          className="p-1 hover:bg-white rounded transition-colors"
+                        >
+                          {copiedId === callTimeline.header.call_sid ? (
+                            <Check className="w-4 h-4 text-green-600" />
+                          ) : (
+                            <Copy className="w-4 h-4 text-gray-600" />
+                          )}
+                        </button>
                       </div>
-                      
+                        
                       {/* Direction, From → To - Pills in one line */}
                       <div className="flex items-center gap-2 flex-wrap">
                         {callTimeline.header.participant_label && (
@@ -1353,6 +1339,9 @@ function App() {
                         </span>
                         <span className="px-2.5 py-1 text-xs font-medium rounded-full border border-gray-300 bg-gray-100 text-gray-700">
                           {callTimeline.header.from_number} → {callTimeline.header.to_number}
+                        </span>
+                        <span className={`px-2.5 py-1 text-xs font-medium rounded-full border ${getCallStatusColor(callTimeline.header.final_status)}`}>
+                          {callTimeline.header.final_status}
                         </span>
                       </div>
                     </div>
