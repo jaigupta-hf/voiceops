@@ -1343,6 +1343,11 @@ function App() {
                       
                       {/* Direction, From → To - Pills in one line */}
                       <div className="flex items-center gap-2 flex-wrap">
+                        {callTimeline.header.participant_label && (
+                          <span className="px-2.5 py-1 text-xs font-medium rounded-full border border-indigo-200 bg-indigo-50 text-indigo-700">
+                            {callTimeline.header.participant_label}
+                          </span>
+                        )}
                         <span className="px-2.5 py-1 text-xs font-medium rounded-full border border-gray-300 bg-gray-100 text-gray-700 capitalize">
                           {callTimeline.header.direction}
                         </span>

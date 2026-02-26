@@ -33,6 +33,16 @@ def build_call_trace(call_sid):
     
     last_event = call_events.last()
     
+    # Extract participant label from status-callback.conference.participant events if available
+    participant_label = None
+    for event in call_events:
+        if 'status-callback.conference.participant' in event.event_type:
+            meta_data = event.meta_data or {}
+            request_params = meta_data.get('data', {}).get('request', {}).get('parameters', {})
+            participant_label = request_params.get('ParticipantLabel')
+            if participant_label:
+                break
+    
     # Build header
     header = {
         'call_sid': call_sid,
@@ -41,6 +51,10 @@ def build_call_trace(call_sid):
         'from_number': header_source_event.from_number if header_source_event.from_number else 'N/A',
         'to_number': header_source_event.to_number if header_source_event.to_number else 'N/A',
     }
+    
+    # Add participant label if available
+    if participant_label:
+        header['participant_label'] = participant_label
     
     # Build events list
     events = []
