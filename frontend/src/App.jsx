@@ -1401,6 +1401,7 @@ function App() {
                   {/* Header Section */}
                   <div className="bg-gradient-to-r from-gray-50 to-slate-50 rounded-xl p-6 border border-gray-200 shadow-sm">
                     <div className="space-y-4">
+                      <span className="text-xs font-semibold text-gray-800">Account: {callTimeline.header.account_sid} </span>
                       {/* Call SID and Final Status in one row */}
                       <div className="flex items-center gap-3">
                         {/* Call SID */}

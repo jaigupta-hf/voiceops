@@ -46,6 +46,7 @@ def build_call_trace(call_sid):
     # Build header
     header = {
         'call_sid': call_sid,
+        'account_sid': header_source_event.account_sid if header_source_event.account_sid else 'N/A',
         'final_status': last_event.call_status if last_event.call_status else 'Unknown',
         'direction': header_source_event.direction if header_source_event.direction else 'N/A',
         'from_number': header_source_event.from_number if header_source_event.from_number else 'N/A',
