@@ -1288,8 +1288,8 @@ function App() {
           <div className="bg-white rounded-xl shadow-xl max-w-6xl w-full max-h-[90vh] overflow-hidden flex" onClick={(e) => e.stopPropagation()}>
             {/* Main Content */}
             <div className={`flex-1 flex flex-col ${selectedPayload ? 'max-w-[60%]' : 'w-full'}`}>
-              <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-                <h2 className="text-xl font-semibold text-gray-900">Call Trace</h2>
+              <div className="px-6 py-1 border-b border-gray-200 flex items-center justify-between">
+                <h2 className="text-lg font-semibold text-gray-900">Call Trace</h2>
                 <button
                   onClick={closeTimeline}
                   className="p-2 hover:bg-gray-100 rounded-full transition-colors"
@@ -1304,7 +1304,7 @@ function App() {
                   <RefreshCw className="w-8 h-8 animate-spin text-blue-600" />
                 </div>
               ) : callTimeline ? (
-                <div className="space-y-6">
+                <div className="space-y-4">
                   {/* Header Section */}
                   <div className="bg-gradient-to-r from-gray-50 to-slate-50 rounded-xl p-6 border border-gray-200 shadow-sm">
                     <div className="space-y-4">
@@ -1364,7 +1364,7 @@ function App() {
                     <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-300"></div>
                     
                     {callTimeline.events.map((event, index) => (
-                      <div key={`${event.category}-${index}`} className="relative pl-12 pb-8">
+                      <div key={`${event.category}-${index}`} className="relative pl-12 pb-4">
                         {/* Timeline dot - centered vertically */}
                         <div className={`absolute left-2.5 top-6 w-3 h-3 rounded-full border-2 border-white ${
                           event.category === 'error' ? 'bg-red-400' : 'bg-slate-400'
@@ -1375,7 +1375,7 @@ function App() {
                             ? 'bg-white border-red-200' 
                             : 'bg-white border-gray-200'
                         }`}>
-                          <div className="flex items-start justify-between mb-3">
+                          <div className="flex items-start justify-between mb-2">
                             <div className="flex items-center gap-2">
                               {event.category === 'error' ? (
                                 <AlertCircle className="w-5 h-5 text-red-500" />
@@ -1423,7 +1423,7 @@ function App() {
             {/* Payload Side Panel */}
             {selectedPayload && (
               <div className="w-[40%] border-l border-gray-300 flex flex-col bg-gray-50">
-                <div className="px-4 py-4 border-b border-gray-300 flex items-center justify-between bg-white">
+                <div className="px-4 py-2 border-b border-gray-300 flex items-center justify-between bg-white">
                   <h3 className="text-lg font-semibold text-gray-900">Event Payload</h3>
                   <button
                     onClick={() => setSelectedPayload(null)}
