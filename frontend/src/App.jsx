@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
-import { Phone, AlertCircle, RefreshCw, Copy, Check, X, Filter, CheckCircle, Clock } from 'lucide-react'
+import { Phone, AlertCircle, RefreshCw, Copy, Check, X, Filter, CheckCircle, Clock, Download } from 'lucide-react'
+import { toPng } from 'html-to-image'
 import './App.css'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
@@ -13,6 +14,7 @@ function App() {
   const [errorStats, setErrorStats] = useState(null)
   const [wsConnected, setWsConnected] = useState(false)
   const wsRef = useRef(null)
+  const timelineRef = useRef(null)
   
   // Filter states
   const [selectedAccountSid, setSelectedAccountSid] = useState('all')
@@ -475,6 +477,28 @@ function App() {
     setCallTimeline(null)
     setConferenceTimeline(null)
     setSelectedPayload(null)
+  }
+
+  const saveTimelineAsImage = async () => {
+    if (!timelineRef.current) return
+    
+    try {
+      const dataUrl = await toPng(timelineRef.current, {
+        backgroundColor: '#ffffff',
+        pixelRatio: 2,
+        style: {
+          overflow: 'visible',
+          maxHeight: 'none'
+        }
+      })
+      
+      const link = document.createElement('a')
+      link.download = `${callTimeline?.header?.call_sid || 'timeline'}.png`
+      link.href = dataUrl
+      link.click()
+    } catch (error) {
+      console.error('Error saving timeline:', error)
+    }
   }
 
   const renderEventDetails = (event) => {
@@ -1383,12 +1407,22 @@ function App() {
             <div className={`flex-1 flex flex-col ${selectedPayload ? 'max-w-[60%]' : 'w-full'}`}>
               <div className="px-6 py-1 border-b border-gray-200 flex items-center justify-between">
                 <h2 className="text-lg font-semibold text-gray-900">Call Trace</h2>
-                <button
-                  onClick={closeTimeline}
-                  className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                >
-                  <X className="w-5 h-5" />
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={saveTimelineAsImage}
+                    className="flex items-center gap-1 px-3 py-1.5 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-full transition-colors"
+                    title="Save timeline as image"
+                  >
+                    <Download className="w-4 h-4" />
+                    Save Timeline
+                  </button>
+                  <button
+                    onClick={closeTimeline}
+                    className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
               </div>
               
               <div className="p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
@@ -1397,7 +1431,7 @@ function App() {
                   <RefreshCw className="w-8 h-8 animate-spin text-blue-600" />
                 </div>
               ) : callTimeline ? (
-                <div className="space-y-4">
+                <div ref={timelineRef} className="space-y-4">
                   {/* Header Section */}
                   <div className="bg-gradient-to-r from-gray-50 to-slate-50 rounded-xl p-6 border border-gray-200 shadow-sm">
                     <div className="space-y-4">
