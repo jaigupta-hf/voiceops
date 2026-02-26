@@ -569,19 +569,24 @@ function App() {
     if (event.event_type && event.event_type.includes('status-callback.conference.participant')) {
       // Extract boolean fields for special rendering
       const booleanFields = ['hold', 'muted', 'coaching']
-      const excludedFields = ['conference_sid', 'friendly_name', 'status']
+      const excludedFields = ['conference_sid', 'friendly_name', 'status', 'call_sid']
       const otherFields = Object.entries(details).filter(([key]) => !booleanFields.includes(key) && !excludedFields.includes(key))
       
       return (
         <div className="space-y-2 text-sm">
-          {/* Status pill */}
-          {details.status && (
-            <div className="flex gap-2 flex-wrap">
+          {/* Status and Call SID pills */}
+          <div className="flex gap-2 flex-wrap">
+            {details.status && (
               <span className={`px-2.5 py-1 text-xs font-medium rounded-full border ${getCallStatusColor(details.status)}`}>
                 {details.status}
               </span>
-            </div>
-          )}
+            )}
+            {details.call_sid && details.call_sid !== 'N/A' && (
+              <span className="px-2.5 py-1 text-xs font-medium rounded-full border border-purple-200 bg-purple-50 text-purple-700">
+                {details.call_sid}
+              </span>
+            )}
+          </div>
           {/* Render other fields normally */}
           {otherFields.map(([key, value]) => {
             if (!value || value === 'N/A') return null
@@ -1560,7 +1565,7 @@ function App() {
                             )}
                             {conferenceTimeline.header.reason_ended && (
                               <span className="px-2.5 py-1 text-xs font-medium rounded-full border border-orange-200 bg-orange-50 text-orange-700">
-                                Reason: {conferenceTimeline.header.reason_ended}
+                                {conferenceTimeline.header.reason_ended}
                               </span>
                             )}
                             {conferenceTimeline.header.ended_by && (

@@ -105,6 +105,7 @@ def format_call_event(event):
     elif 'status-callback.conference.participant' in event_type:
         details = {
             'conference_sid': event.conference_sid or 'N/A',
+            'call_sid': event.call_sid or 'N/A',
             'status': event.call_status or 'N/A'
         }
         # Add optional fields if available
