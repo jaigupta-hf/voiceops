@@ -915,10 +915,7 @@ function App() {
                 <div className="flex items-center gap-4">
                   <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                     <Phone className="w-5 h-5 text-blue-600" />
-                    Call Events ({selectedStatusFilter !== 'all' ? uniqueFilteredCalls.length : filteredCallEvents.length})
-                    {selectedStatusFilter !== 'all' && (
-                      <span className="text-sm font-normal text-gray-600">- {selectedStatusFilter.replace('-', ' ')}</span>
-                    )}
+                    Call Events
                   </h2>
                   <form onSubmit={handleCallSidSearch} className="flex gap-2">
                     <input
@@ -1198,7 +1195,7 @@ function App() {
                 <div className="flex items-center justify-between mb-3">
                   <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                     <AlertCircle className="w-5 h-5 text-red-600" />
-                    Error Events ({filteredErrorEvents.length})
+                    Error Events
                   </h2>
                 </div>
                 <div className="space-y-2">
@@ -1354,7 +1351,11 @@ function App() {
                           )}
                           {event.correlation_sid && (
                             <div className="flex items-center gap-1">
-                              <p className="text-xs text-gray-500 font-mono truncate flex-1">
+                              <p 
+                                className="text-xs text-blue-600 font-mono truncate flex-1 cursor-pointer hover:underline"
+                                onClick={() => fetchCallTimeline(event.correlation_sid)}
+                                title="View call trace"
+                              >
                                 {event.correlation_sid}
                               </p>
                               <button
