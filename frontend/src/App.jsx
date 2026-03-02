@@ -366,7 +366,11 @@ function App() {
       return <AlertCircle className="w-5 h-5 text-red-500" />
     }
     
-    if (event.event_type && event.event_type.includes('status-callback.call.completed')) {
+    // Check if this event itself is a completed event, OR if any other event for this call_sid is completed
+    const isCompleted = (event.event_type && event.event_type.includes('status-callback.call.completed')) ||
+                        callEvents.some(e => e.call_sid === event.call_sid && e.event_type && e.event_type.includes('status-callback.call.completed'))
+    
+    if (isCompleted) {
       // Call completed successfully
       return <CheckCircle className="w-5 h-5 text-green-500" />
     }

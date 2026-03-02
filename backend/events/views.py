@@ -41,8 +41,9 @@ class CallEventViewSet(viewsets.ReadOnlyModelViewSet):
     
     def get_queryset(self):
         """
-        Return only the latest event for each unique call_sid.
-        Uses a subquery to get the latest event_id per call_sid.
+        Return only the most relevant event for each unique call_sid.
+        Prioritizes status-callback.call.completed events if they exist,
+        otherwise returns the latest event by timestamp.
         Exception: When searching for a specific call_sid, return all events.
         """
         queryset = super().get_queryset()
@@ -53,15 +54,32 @@ class CallEventViewSet(viewsets.ReadOnlyModelViewSet):
             # Return all events matching the search, don't deduplicate
             return queryset
         
+        from django.db.models import Q, Exists, OuterRef
+        
+        # Subquery to check if a completed event exists for this call_sid
+        has_completed_event = CallEvent.objects.filter(
+            call_sid=OuterRef('call_sid'),
+            event_type__contains='status-callback.call.completed'
+        )
+        
+        # Subquery to get the first completed event_id for each call_sid
+        completed_event_id = CallEvent.objects.filter(
+            call_sid=OuterRef('call_sid'),
+            event_type__contains='status-callback.call.completed'
+        ).order_by('timestamp').values('event_id')[:1]
+        
         # Subquery to get the latest event_id for each call_sid
-        latest_events = CallEvent.objects.filter(
+        latest_event_id = CallEvent.objects.filter(
             call_sid=OuterRef('call_sid')
         ).order_by('-timestamp').values('event_id')[:1]
         
-        # Filter to only include the latest event per call_sid
+        # Filter to get one event per call_sid:
+        # - If completed event exists, show that (the first completed event)
+        # - Otherwise, show the latest event by timestamp
         queryset = queryset.filter(
-            event_id__in=Subquery(latest_events)
-        ).order_by('-timestamp')
+            Q(event_id__in=Subquery(completed_event_id)) |
+            (Q(event_id__in=Subquery(latest_event_id)) & ~Exists(has_completed_event))
+        ).distinct().order_by('-timestamp')
         
         return queryset
     

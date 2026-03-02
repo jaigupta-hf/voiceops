@@ -33,21 +33,30 @@ def build_call_trace(call_sid):
     
     last_event = call_events.last()
     
+    # Determine final status: prioritize status-callback.call.completed if it exists
+    completed_event = None
+    for event in call_events:
+        if 'status-callback.call.completed' in event.event_type:
+            completed_event = event
+            break
+    
+    # Use completed event status if available, otherwise use last event
+    final_status_event = completed_event if completed_event else last_event
+    
     # Extract participant label from status-callback.conference.participant events if available
     participant_label = None
     for event in call_events:
-        if 'status-callback.conference.participant' in event.event_type:
-            meta_data = event.meta_data or {}
-            request_params = meta_data.get('data', {}).get('request', {}).get('parameters', {})
-            participant_label = request_params.get('ParticipantLabel')
-            if participant_label:
-                break
+        meta_data = event.meta_data or {}
+        request_params = meta_data.get('data', {}).get('request', {}).get('parameters', {})
+        participant_label = request_params.get('ParticipantLabel')
+        if participant_label:
+            break
     
     # Build header
     header = {
         'call_sid': call_sid,
         'account_sid': header_source_event.account_sid if header_source_event.account_sid else 'N/A',
-        'final_status': last_event.call_status if last_event.call_status else 'Unknown',
+        'final_status': final_status_event.call_status if final_status_event.call_status else 'Unknown',
         'direction': header_source_event.direction if header_source_event.direction else 'N/A',
         'from_number': header_source_event.from_number if header_source_event.from_number else 'N/A',
         'to_number': header_source_event.to_number if header_source_event.to_number else 'N/A',
