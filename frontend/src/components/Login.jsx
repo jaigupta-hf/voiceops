@@ -42,7 +42,7 @@ const Login = () => {
 
         <div className="flex flex-col items-center gap-4">
           {loading ? (
-            <div className="py-3 px-6 bg-gray-100 rounded-lg text-gray-600">
+            <div className="py-3 px-6 bg-gray-100 rounded-full text-gray-600">
               Signing in...
             </div>
           ) : (
@@ -53,13 +53,9 @@ const Login = () => {
               theme="outline"
               size="large"
               text="signin_with"
-              shape="rectangular"
+              shape="pill"
             />
           )}
-        </div>
-
-        <div className="mt-8 text-center text-sm text-gray-500">
-          <p>By signing in, you agree to our Terms of Service</p>
         </div>
       </div>
     </div>
