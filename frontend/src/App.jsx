@@ -586,7 +586,23 @@ function App() {
                 {details.call_sid}
               </span>
             )}
+            {(details.hold === 'true' || details.hold === true) && (
+              <span className="px-2.5 py-1 text-xs font-medium rounded-full border border-orange-200 bg-orange-50 text-orange-700">
+                Hold
+              </span>
+            )}
+            {(details.muted === 'true' || details.muted === true) && (
+              <span className="px-2.5 py-1 text-xs font-medium rounded-full border border-orange-200 bg-orange-50 text-orange-700">
+                Muted
+              </span>
+            )}
+            {(details.coaching === 'true' || details.coaching === true) && (
+              <span className="px-2.5 py-1 text-xs font-medium rounded-full border border-orange-200 bg-orange-50 text-orange-700">
+                Coaching
+              </span>
+            )}
           </div>
+
           {/* Render other fields normally */}
           {otherFields.map(([key, value]) => {
             if (!value || value === 'N/A') return null
@@ -604,35 +620,6 @@ function App() {
             )
           })}
           
-          {/* Render boolean fields (hold, muted, coaching) with checkmarks/crosses */}
-          {(details.hold !== undefined || details.muted !== undefined || details.coaching !== undefined) && (
-            <div className="flex gap-4 items-center">
-              {details.hold !== undefined && (
-                <div className="flex items-center gap-1">
-                  <span className="text-xs font-medium text-gray-700">Hold:</span>
-                  <span className={`text-sm ${details.hold === 'true' || details.hold === true ? 'text-green-600' : 'text-red-600'}`}>
-                    {details.hold === 'true' || details.hold === true ? '✓' : '✗'}
-                  </span>
-                </div>
-              )}
-              {details.muted !== undefined && (
-                <div className="flex items-center gap-1">
-                  <span className="text-xs font-medium text-gray-700">Muted:</span>
-                  <span className={`text-sm ${details.muted === 'true' || details.muted === true ? 'text-green-600' : 'text-red-600'}`}>
-                    {details.muted === 'true' || details.muted === true ? '✓' : '✗'}
-                  </span>
-                </div>
-              )}
-              {details.coaching !== undefined && (
-                <div className="flex items-center gap-1">
-                  <span className="text-xs font-medium text-gray-700">Coaching:</span>
-                  <span className={`text-sm ${details.coaching === 'true' || details.coaching === true ? 'text-green-600' : 'text-red-600'}`}>
-                    {details.coaching === 'true' || details.coaching === true ? '✓' : '✗'}
-                  </span>
-                </div>
-              )}
-            </div>
-          )}
         </div>
       )
     }
@@ -689,6 +676,21 @@ function App() {
               </span>
             </div>
           )}
+          {(details.hold === 'true' || details.hold === true) && (
+            <span className="px-2.5 py-1 text-xs font-medium rounded-full border border-orange-200 bg-orange-50 text-orange-700">
+              Hold
+            </span>
+          )}
+          {(details.muted === 'true' || details.muted === true) && (
+            <span className="px-2.5 py-1 text-xs font-medium rounded-full border border-orange-200 bg-orange-50 text-orange-700">
+              Muted
+            </span>
+          )}
+          {(details.coaching === 'true' || details.coaching === true) && (
+            <span className="px-2.5 py-1 text-xs font-medium rounded-full border border-orange-200 bg-orange-50 text-orange-700">
+              Coaching
+            </span>
+          )}
           {/* Render other fields normally */}
           {otherFields.map(([key, value]) => {
             if (!value || value === 'N/A') return null
@@ -706,35 +708,6 @@ function App() {
             )
           })}
           
-          {/* Render boolean fields (hold, muted, coaching) with checkmarks/crosses */}
-          {(details.hold !== undefined || details.muted !== undefined || details.coaching !== undefined) && (
-            <div className="flex gap-4 items-center">
-              {details.hold !== undefined && (
-                <div className="flex items-center gap-1">
-                  <span className="text-xs font-medium text-gray-700">Hold:</span>
-                  <span className={`text-sm ${details.hold === 'true' || details.hold === true ? 'text-green-600' : 'text-red-600'}`}>
-                    {details.hold === 'true' || details.hold === true ? '✓' : '✗'}
-                  </span>
-                </div>
-              )}
-              {details.muted !== undefined && (
-                <div className="flex items-center gap-1">
-                  <span className="text-xs font-medium text-gray-700">Muted:</span>
-                  <span className={`text-sm ${details.muted === 'true' || details.muted === true ? 'text-green-600' : 'text-red-600'}`}>
-                    {details.muted === 'true' || details.muted === true ? '✓' : '✗'}
-                  </span>
-                </div>
-              )}
-              {details.coaching !== undefined && (
-                <div className="flex items-center gap-1">
-                  <span className="text-xs font-medium text-gray-700">Coaching:</span>
-                  <span className={`text-sm ${details.coaching === 'true' || details.coaching === true ? 'text-green-600' : 'text-red-600'}`}>
-                    {details.coaching === 'true' || details.coaching === true ? '✓' : '✗'}
-                  </span>
-                </div>
-              )}
-            </div>
-          )}
         </div>
       )
     }
