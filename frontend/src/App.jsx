@@ -1,12 +1,15 @@
 import { useState, useEffect, useRef } from 'react'
-import { Phone, AlertCircle, RefreshCw, Copy, Check, X, Filter, CheckCircle, Clock, Download } from 'lucide-react'
+import { Phone, AlertCircle, RefreshCw, Copy, Check, X, Filter, CheckCircle, Clock, Download, LogOut } from 'lucide-react'
 import { toPng } from 'html-to-image'
 import './App.css'
+import { useAuth } from './contexts/AuthContext'
+import Login from './components/Login'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
 const WS_BASE_URL = import.meta.env.VITE_WS_BASE_URL || 'ws://localhost:8000'
 
 function App() {
+  const { isAuthenticated, loading: authLoading, user, logout } = useAuth()
   const [callEvents, setCallEvents] = useState([])
   const [errorEvents, setErrorEvents] = useState([])
   const [loading, setLoading] = useState(true)
@@ -865,7 +868,7 @@ function App() {
     return true
   })
 
-  if (loading) {
+  if (authLoading || loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
         <div className="text-center">
@@ -874,6 +877,10 @@ function App() {
         </div>
       </div>
     )
+  }
+
+  if (!isAuthenticated) {
+    return <Login />
   }
 
   return (
@@ -898,9 +905,22 @@ function App() {
                 </select>
               </div>
             </div>
-            <span className={`px-3 py-1.5 text-sm font-medium rounded-full ${wsConnected ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-              {wsConnected ? '● Live' : '● Disconnected'}
-            </span>
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-gray-600">
+                {user?.email}
+              </span>
+              <button
+                onClick={logout}
+                className="flex items-center gap-2 px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full transition-colors"
+                title="Logout"
+              >
+                <LogOut className="w-4 h-4" />
+                Logout
+              </button>
+              <span className={`px-3 py-1.5 text-sm font-medium rounded-full ${wsConnected ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                {wsConnected ? '● Live' : '● Disconnected'}
+              </span>
+            </div>
           </div>
         </div>
       </header>
