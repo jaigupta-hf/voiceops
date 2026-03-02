@@ -21,6 +21,7 @@ function App() {
   
   // Filter states
   const [selectedAccountSid, setSelectedAccountSid] = useState('all')
+  const [selectedTimezone, setSelectedTimezone] = useState('IST')
   const [callDateRange, setCallDateRange] = useState('all')
   const [errorDateRange, setErrorDateRange] = useState('all')
   const [callFilters, setCallFilters] = useState({
@@ -252,6 +253,16 @@ function App() {
 
   const formatTimestamp = (timestamp) => {
     const date = new Date(timestamp)
+    
+    // If UTC is selected, show raw UTC time
+    if (selectedTimezone === 'UTC') {
+      const utcString = date.toISOString()
+      const dateStr = utcString.split('T')[0]
+      const timeStr = utcString.split('T')[1].split('.')[0]
+      return `${dateStr} ${timeStr} UTC`
+    }
+    
+    // IST display (local timezone)
     const today = new Date()
     const yesterday = new Date(today)
     yesterday.setDate(yesterday.getDate() - 1)
@@ -907,6 +918,17 @@ function App() {
                       {sid === 'all' ? 'All Accounts' : sid}
                     </option>
                   ))}
+                </select>
+              </div>
+              <div className="flex items-center gap-2">
+                <label className="text-sm text-gray-600">Timezone:</label>
+                <select
+                  value={selectedTimezone}
+                  onChange={(e) => setSelectedTimezone(e.target.value)}
+                  className="px-3 py-1 text-sm border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="IST">IST</option>
+                  <option value="UTC">UTC</option>
                 </select>
               </div>
             </div>
