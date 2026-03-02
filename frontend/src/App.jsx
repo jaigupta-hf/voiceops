@@ -576,19 +576,24 @@ function App() {
     if (event.event_type && event.event_type.includes('status-callback.conference.participant')) {
       // Extract boolean fields for special rendering
       const booleanFields = ['hold', 'muted', 'coaching']
-      const excludedFields = ['conference_sid', 'friendly_name', 'status', 'call_sid']
+      const excludedFields = ['conference_sid', 'friendly_name', 'status', 'call_sid', 'participant_label']
       const otherFields = Object.entries(details).filter(([key]) => !booleanFields.includes(key) && !excludedFields.includes(key))
       
       return (
         <div className="space-y-2 text-sm">
-          {/* Status and Call SID pills */}
+          {/* Status and Participant label/Call SID pills */}
           <div className="flex gap-2 flex-wrap">
             {details.status && (
               <span className={`px-2.5 py-1 text-xs font-medium rounded-full border ${getCallStatusColor(details.status)}`}>
                 {details.status}
               </span>
             )}
-            {details.call_sid && details.call_sid !== 'N/A' && (
+            {/* Show participant_label if available, otherwise show call_sid */}
+            {details.participant_label ? (
+              <span className="px-2.5 py-1 text-xs font-medium rounded-full border border-indigo-200 bg-indigo-50 text-indigo-700">
+                {details.participant_label}
+              </span>
+            ) : details.call_sid && details.call_sid !== 'N/A' && (
               <span className="px-2.5 py-1 text-xs font-medium rounded-full border border-purple-200 bg-purple-50 text-purple-700">
                 {details.call_sid}
               </span>
@@ -1443,7 +1448,7 @@ function App() {
                       <div className="flex items-center gap-3">
                         {/* Call SID */}
                         <span className="text-lg font-semibold text-gray-800">Call SID: </span>
-                        <code className="text-md bg-white px-4 py-2 rounded-full border border-gray-300 font-mono">
+                        <code className="text-md bg-white px-4 py-1 rounded-full border border-gray-300 font-mono">
                           {callTimeline.header.call_sid}
                         </code>
                         <button
@@ -1534,13 +1539,13 @@ function App() {
 
                   {/* Conference Trace Section */}
                   {conferenceTimeline && (
-                    <div className="space-y-4 mt-8">
+                    <div className="space-y-4 mt-4">
                       {/* Conference Header */}
                       <div className="bg-gradient-to-r from-gray-50 to-slate-50 rounded-xl p-6 border border-indigo-200 shadow-sm">
-                        <div className="space-y-4">
+                        <div className="space-y-2">
                           <div className="flex items-center gap-3">
                             <span className="text-base font-semibold text-gray-800">Conference SID: </span>
-                            <code className="text-md bg-white px-4 py-2 rounded-full border border-gray-300 font-mono">
+                            <code className="text-md bg-white px-4 py-1 rounded-full border border-gray-300 font-mono">
                               {conferenceTimeline.header.conference_sid}
                             </code>
                             <button
@@ -1554,6 +1559,40 @@ function App() {
                               )}
                             </button>
                           </div>
+                          
+                          {/* Participant count and list */}
+                          {conferenceTimeline.header.participant_count > 0 && (
+                            <div className="space-y-2">
+                              <span className="text-sm font-semibold text-gray-700">
+                                Participants ({conferenceTimeline.header.participant_count}):
+                              </span>
+                              <div className="flex flex-wrap gap-2">
+                                {conferenceTimeline.header.participants.map((participant, idx) => (
+                                  <div key={idx} className="flex items-center gap-2 px-3 py-1.5 bg-white rounded-full border border-indigo-200">
+                                    {participant.label && (
+                                      <span className="text-xs font-medium text-indigo-700">
+                                        {participant.label}
+                                      </span>
+                                    )}
+                                    <span className="text-xs text-gray-600 font-mono">
+                                      {participant.call_sid}
+                                    </span>
+                                    <button
+                                      onClick={() => copyToClipboard(participant.call_sid)}
+                                      className="p-0.5 hover:bg-indigo-100 rounded transition-colors"
+                                      title="Copy Call SID"
+                                    >
+                                      {copiedId === participant.call_sid ? (
+                                        <Check className="w-3 h-3 text-green-600" />
+                                      ) : (
+                                        <Copy className="w-3 h-3 text-gray-500" />
+                                      )}
+                                    </button>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                           
                           <div className="flex items-center gap-2 flex-wrap">
                             {conferenceTimeline.header.friendly_name && (

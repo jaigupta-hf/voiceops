@@ -257,9 +257,24 @@ def build_conference_trace(conference_sid):
         if reason_ended: 
             break
     
+    # Extract unique call_sids and their participant labels
+    participants = {}
+    for event in conference_events:
+        call_sid = event.call_sid
+        if call_sid and call_sid not in participants:
+            meta_data = event.meta_data or {}
+            request_params = meta_data.get('data', {}).get('request', {}).get('parameters', {})
+            participant_label = request_params.get('ParticipantLabel')
+            participants[call_sid] = {
+                'call_sid': call_sid,
+                'label': participant_label if participant_label else None
+            }
+    
     # Build header
     header = {
         'conference_sid': conference_sid,
+        'participant_count': len(participants),
+        'participants': list(participants.values()),
     }
     
     if friendly_name:
