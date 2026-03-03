@@ -154,6 +154,9 @@ def format_call_event(event):
     
     elif 'api-request.conference-participant.created' in event_type:
         details = {}
+        # Add call_sid
+        if event.call_sid:
+            details['call_sid'] = event.call_sid
         # Extract from request parameters
         if request_params.get('Label'):
             details['participant_label'] = request_params['Label']
@@ -166,6 +169,12 @@ def format_call_event(event):
     
     elif 'api-request.conference-participant.modified' in event_type:
         details = {}
+        # Add call_sid
+        if event.call_sid:
+            details['call_sid'] = event.call_sid
+        # Extract participant label from request parameters
+        if request_params.get('Label'):
+            details['participant_label'] = request_params['Label']
         # Extract from request parameters
         if request_params.get('Coaching') is not None:
             details['coaching'] = request_params['Coaching']
@@ -177,9 +186,17 @@ def format_call_event(event):
         formatted['details'] = details
     
     elif 'api-request.conference-participant.deleted' in event_type:
-        formatted['details'] = {
+        details = {
             'status': 'Removed participant programmatically'
         }
+        # Add call_sid
+        if event.call_sid:
+            details['call_sid'] = event.call_sid
+        # Extract participant label from request parameters
+        if request_params.get('Label'):
+            details['participant_label'] = request_params['Label']
+        
+        formatted['details'] = details
     
     elif 'twiml.call' in event_type:
         details = {

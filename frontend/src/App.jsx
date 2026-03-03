@@ -686,34 +686,47 @@ function App() {
     if (event.event_type && event.event_type.includes('api-request.conference-participant')) {
       // Extract boolean fields for special rendering
       const booleanFields = ['hold', 'muted', 'coaching']
-      const excludedFields = ['status']
+      const excludedFields = ['status', 'call_sid', 'participant_label']
       const otherFields = Object.entries(details).filter(([key]) => !booleanFields.includes(key) && !excludedFields.includes(key))
       
       return (
         <div className="space-y-2 text-sm">
-          {/* Status pill */}
-          {details.status && (
-            <div className="flex gap-2 flex-wrap">
+          {/* Pills container */}
+          <div className="flex gap-2 flex-wrap">
+            {/* Status pill */}
+            {details.status && (
               <span className={`px-2.5 py-1 text-xs font-medium rounded-full border ${getCallStatusColor(details.status)}`}>
                 {details.status}
               </span>
-            </div>
-          )}
-          {(details.hold === 'true' || details.hold === true) && (
-            <span className="px-2.5 py-1 text-xs font-medium rounded-full border border-orange-200 bg-orange-50 text-orange-700">
-              Hold
-            </span>
-          )}
-          {(details.muted === 'true' || details.muted === true) && (
-            <span className="px-2.5 py-1 text-xs font-medium rounded-full border border-orange-200 bg-orange-50 text-orange-700">
-              Muted
-            </span>
-          )}
-          {(details.coaching === 'true' || details.coaching === true) && (
-            <span className="px-2.5 py-1 text-xs font-medium rounded-full border border-orange-200 bg-orange-50 text-orange-700">
-              Coaching
-            </span>
-          )}
+            )}
+            {/* Participant label pill */}
+            {details.participant_label && (
+              <span className="px-2.5 py-1 text-xs font-medium rounded-full border border-indigo-200 bg-indigo-50 text-indigo-700">
+                {details.participant_label}
+              </span>
+            )}
+            {/* Call SID pill */}
+            {details.call_sid && details.call_sid !== 'N/A' && (
+              <span className="px-2.5 py-1 text-xs font-medium rounded-full border border-purple-200 bg-purple-50 text-purple-700">
+                {details.call_sid}
+              </span>
+            )}
+            {(details.hold === 'true' || details.hold === true) && (
+              <span className="px-2.5 py-1 text-xs font-medium rounded-full border border-orange-200 bg-orange-50 text-orange-700">
+                Hold
+              </span>
+            )}
+            {(details.muted === 'true' || details.muted === true) && (
+              <span className="px-2.5 py-1 text-xs font-medium rounded-full border border-orange-200 bg-orange-50 text-orange-700">
+                Muted
+              </span>
+            )}
+            {(details.coaching === 'true' || details.coaching === true) && (
+              <span className="px-2.5 py-1 text-xs font-medium rounded-full border border-orange-200 bg-orange-50 text-orange-700">
+                Coaching
+              </span>
+            )}
+          </div>
           {/* Render other fields normally */}
           {otherFields.map(([key, value]) => {
             if (!value || value === 'N/A') return null
