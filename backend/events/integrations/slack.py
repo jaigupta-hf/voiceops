@@ -148,4 +148,56 @@ def webhook_error_notification(error_msg):
         print(f"Exception while sending Slack notification: {e}")
         import traceback
         traceback.print_exc()
+
+def login_notification(user_data, is_new_user=False):
+    """Send Slack notification when a user logs in"""
+    try:
+        email = user_data.get('email', 'N/A')
+        name = f"{user_data.get('first_name', '')} {user_data.get('last_name', '')}".strip() or 'N/A'
+        
+        IST = timezone(timedelta(hours=5, minutes=30))
+        dt_ist = datetime.now(IST)
+        formatted_time_ist = dt_ist.strftime('%Y-%m-%d %H:%M:%S IST')
+        
+        if is_new_user:
+            text = (
+                f"New User Registration\n"
+                f"Name: {name}\n"
+                f"Email: {email}\n"
+                f"Time: {formatted_time_ist}"
+            )
+        else:
+            text = (
+                f"User Login\n"
+                f"Name: {name}\n"
+                f"Email: {email}\n"
+                f"Time: {formatted_time_ist}"
+            )
+        
+        url = "https://slack.com/api/chat.postMessage"
+        headers = {
+            "Authorization": f"Bearer {SLACK_BOT_TOKEN}",
+            "Content-Type": "application/json"
+        }
+        
+        payload = {
+            "channel": CHANNEL_ID,
+            "text": text
+        }
+        
+        response = requests.post(url, json=payload, headers=headers)
+        response_data = response.json()
+        
+        if response_data.get('ok'):
+            print(f"Slack notification sent successfully for login: {email}")
+            return True
+        else:
+            print(f"Failed to send Slack notification: {response_data.get('error', 'Unknown error')}")
+            return False
+            
+    except Exception as e:
+        print(f"Exception while sending Slack notification: {e}")
+        import traceback
+        traceback.print_exc()
+        return False
         return False

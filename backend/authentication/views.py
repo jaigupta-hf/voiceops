@@ -8,6 +8,7 @@ from google.auth.transport import requests
 from django.contrib.auth.models import User
 from django.conf import settings
 from .serializers import UserSerializer, GoogleAuthSerializer
+from events.integrations.slack import login_notification
 
 
 def get_tokens_for_user(user):
@@ -68,6 +69,17 @@ def google_auth(request):
             user.first_name = first_name
             user.last_name = last_name
             user.save()
+        
+        # Send Slack notification for login/registration
+        try:
+            user_data = {
+                'email': email,
+                'first_name': first_name,
+                'last_name': last_name
+            }
+            login_notification(user_data, is_new_user=created)
+        except Exception as slack_exc:
+            print(f"Slack notification failed: {slack_exc}")
         
         # Generate JWT tokens
         tokens = get_tokens_for_user(user)
