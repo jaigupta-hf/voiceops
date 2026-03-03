@@ -6,17 +6,17 @@ class CallEvent(models.Model):
     Stores all call and conference events
     """
 
-    event_id = models.CharField(max_length=100, primary_key=True)
-    account_sid = models.CharField(max_length=64, null=True, blank=True, db_index=True)
-    call_sid = models.CharField(max_length=64, null=True, blank=True, db_index=True)
-    conference_sid = models.CharField(max_length=64, null=True, blank=True, db_index=True)
+    event_id = models.CharField(max_length=34, primary_key=True)
+    account_sid = models.CharField(max_length=34, null=True, blank=True, db_index=True)
+    call_sid = models.CharField(max_length=34, null=True, blank=True, db_index=True)
+    conference_sid = models.CharField(max_length=34, null=True, blank=True, db_index=True)
 
     event_type = models.CharField(max_length=100, db_index=True)
     call_status = models.CharField(max_length=32, null=True, blank=True, db_index=True)
 
-    direction = models.CharField(max_length=16, null=True, blank=True, db_index=True)
-    from_number = models.CharField(max_length=255, null=True, blank=True, db_index=True)
-    to_number = models.CharField(max_length=255, null=True, blank=True, db_index=True)
+    direction = models.CharField(max_length=12, null=True, blank=True, db_index=True)
+    from_number = models.CharField(max_length=32, null=True, blank=True, db_index=True)
+    to_number = models.CharField(max_length=64, null=True, blank=True, db_index=True) 
 
     timestamp = models.DateTimeField(db_index=True)
 
@@ -33,20 +33,18 @@ class ErrorEvent(models.Model):
     Stores all Twilio error events
     """
 
-    event_id = models.CharField(max_length=100, unique=True)
-    account_sid = models.CharField(max_length=64, null=True, blank=True, db_index=True)
+    event_id = models.CharField(max_length=34, primary_key=True)
+    account_sid = models.CharField(max_length=34, null=True, blank=True, db_index=True)
 
-    correlation_sid = models.CharField(
-        max_length=64, null=True, blank=True, db_index=True
-    )
+    correlation_sid = models.CharField(max_length=34, null=True, blank=True, db_index=True)
 
-    error_code = models.CharField(max_length=16, null=True, blank=True)
-    severity = models.CharField(max_length=16)
+    error_code = models.CharField(max_length=6, null=True, blank=True)
+    severity = models.CharField(max_length=7)
     product = models.CharField(max_length=64, null=True, blank=True)
 
     error_message = models.TextField(null=True, blank=True)
 
-    request_sid = models.CharField(max_length=64, null=True, blank=True)
+    request_sid = models.CharField(max_length=34, null=True, blank=True)
 
     timestamp = models.DateTimeField(db_index=True)
 
