@@ -62,6 +62,14 @@ function App() {
   const [selectedStatusFilter, setSelectedStatusFilter] = useState('all')
   const [callSidSearch, setCallSidSearch] = useState('')
   const [selectedPayload, setSelectedPayload] = useState(null)
+  
+  // Pagination states
+  const [callEventsNextPage, setCallEventsNextPage] = useState(null)
+  const [errorEventsNextPage, setErrorEventsNextPage] = useState(null)
+  const [loadingMoreCalls, setLoadingMoreCalls] = useState(false)
+  const [loadingMoreErrors, setLoadingMoreErrors] = useState(false)
+  const [showLoadMoreCalls, setShowLoadMoreCalls] = useState(false)
+  const callEventsScrollRef = useRef(null)
 
   const getDateRangeForQuickFilter = (range) => {
     const now = new Date()
@@ -126,14 +134,14 @@ function App() {
     }
   }
 
-  const fetchData = async (silent = false, forceNoPagination = false) => {
+  const fetchData = async (silent = false) => {
     if (!silent) {
       setLoading(true)
     }
     try {
-      // Build query parameters - use no_pagination when explicitly requested or when filters would result in limited results
-      let callQuery = forceNoPagination ? 'no_pagination=true' : 'page_size=100'
-      let errorQuery = forceNoPagination ? 'no_pagination=true' : 'page_size=100'
+      // Always use pagination for performance
+      let callQuery = 'page_size=100'
+      let errorQuery = 'page_size=100'
 
       const [callsRes, errorsRes, callStatsRes, errorStatsRes] = await Promise.all([
         fetch(`${API_BASE_URL}/call-events/?${callQuery}`),
@@ -151,6 +159,10 @@ function App() {
       setErrorEvents(errorsData.results || errorsData)
       setCallStats(callStatsData)
       setErrorStats(errorStatsData)
+      
+      // Store next page URLs for pagination
+      setCallEventsNextPage(callsData.next || null)
+      setErrorEventsNextPage(errorsData.next || null)
     } catch (error) {
       console.error('Error fetching data:', error)
     } finally {
@@ -250,6 +262,18 @@ function App() {
       }
     }
   }, [])
+
+  // Check scroll position when call events load or next page changes
+  useEffect(() => {
+    if (callEventsScrollRef.current && callEventsNextPage) {
+      const element = callEventsScrollRef.current
+      const scrollThreshold = 100
+      const isNearBottom = element.scrollHeight - element.scrollTop - element.clientHeight < scrollThreshold
+      setShowLoadMoreCalls(isNearBottom)
+    } else {
+      setShowLoadMoreCalls(false)
+    }
+  }, [callEvents, callEventsNextPage])
 
   const formatTimestamp = (timestamp) => {
     const date = new Date(timestamp)
@@ -406,16 +430,12 @@ function App() {
     setCallDateRange('all')
     setCallFilters(defaultFilters)
     setAppliedCallFilters(defaultFilters)
-    fetchData(true, false) // Use pagination when no filters
+    fetchData(true)
   }
 
   const applyCallFilters = () => {
     setAppliedCallFilters(callFilters)
-    // Check if any meaningful filters are applied
-    const hasFilters = callFilters.dateFrom || callFilters.dateTo || 
-                       callFilters.direction !== 'all' || callFilters.eventType !== 'all' ||
-                       callFilters.callStatus !== 'all' || callFilters.fromNumber || callFilters.toNumber
-    fetchData(true, hasFilters) // No pagination when filters applied
+    fetchData(true)
   }
 
   const clearErrorFilters = () => {
@@ -432,6 +452,47 @@ function App() {
 
   const applyErrorFilters = () => {
     setAppliedErrorFilters(errorFilters)
+  }
+
+  const loadMoreCallEvents = async () => {
+    if (!callEventsNextPage || loadingMoreCalls) return
+    
+    setLoadingMoreCalls(true)
+    try {
+      const response = await fetch(callEventsNextPage)
+      const data = await response.json()
+      
+      setCallEvents(prev => [...prev, ...(data.results || [])])
+      setCallEventsNextPage(data.next || null)
+    } catch (error) {
+      console.error('Error loading more call events:', error)
+    } finally {
+      setLoadingMoreCalls(false)
+    }
+  }
+
+  const handleCallEventsScroll = (e) => {
+    const element = e.target
+    const scrollThreshold = 100 // Show button when within 100px of bottom
+    const isNearBottom = element.scrollHeight - element.scrollTop - element.clientHeight < scrollThreshold
+    setShowLoadMoreCalls(isNearBottom && callEventsNextPage)
+  }
+
+  const loadMoreErrorEvents = async () => {
+    if (!errorEventsNextPage || loadingMoreErrors) return
+    
+    setLoadingMoreErrors(true)
+    try {
+      const response = await fetch(errorEventsNextPage)
+      const data = await response.json()
+      
+      setErrorEvents(prev => [...prev, ...(data.results || [])])
+      setErrorEventsNextPage(data.next || null)
+    } catch (error) {
+      console.error('Error loading more error events:', error)
+    } finally {
+      setLoadingMoreErrors(false)
+    }
   }
 
   const fetchCallTimeline = async (callSid) => {
@@ -1137,7 +1198,11 @@ function App() {
               </div>
 
               <div className="overflow-x-auto flex-1 flex flex-col">
-                <div className="flex-1 overflow-y-auto">
+                <div 
+                  ref={callEventsScrollRef}
+                  className="flex-1 overflow-y-auto"
+                  onScroll={handleCallEventsScroll}
+                >
                   <table className="w-full">
                     <thead className="bg-gray-50 sticky top-0">
                       <tr>
@@ -1212,6 +1277,25 @@ function App() {
                       )}
                     </tbody>
                   </table>
+                  {/* Load More Button for Call Events */}
+                  {showLoadMoreCalls && (
+                    <div className="px-6 py-2 border-t border-gray-200 flex justify-center">
+                      <button
+                        onClick={loadMoreCallEvents}
+                        disabled={loadingMoreCalls}
+                        className="px-4 py-1 text-xs bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-full transition-colors flex items-center gap-2"
+                      >
+                        {loadingMoreCalls ? (
+                          <>
+                            <RefreshCw className="w-4 h-4 animate-spin" />
+                            Loading...
+                          </>
+                        ) : (
+                          'Load More...'
+                        )}
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -1417,6 +1501,25 @@ function App() {
                     ))
                   )}
                 </div>
+                {/* Load More Button for Error Events */}
+                {errorEventsNextPage && (
+                  <div className="px-6 py-2 border-t border-gray-200 flex justify-center">
+                    <button
+                      onClick={loadMoreErrorEvents}
+                      disabled={loadingMoreErrors}
+                      className="px-4 py-1 text-xs bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-full transition-colors flex items-center gap-2"
+                    >
+                      {loadingMoreErrors ? (
+                        <>
+                          <RefreshCw className="w-4 h-4 animate-spin" />
+                          Loading...
+                        </>
+                      ) : (
+                        'Load More...'
+                      )}
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </div>
