@@ -1557,7 +1557,7 @@ function App() {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={saveTimelineAsImage}
-                    className="flex items-center gap-1 px-3 py-1.5 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-full transition-colors"
+                    className="flex items-center gap-1 px-2 py-1 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded-full transition-colors"
                     title="Save timeline as image"
                   >
                     <Download className="w-4 h-4" />
