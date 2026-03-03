@@ -957,7 +957,7 @@ function App() {
         </div>
       </header>
 
-      <div className="max-w-full mx-auto px-6 py-6 h-[calc(100vh-120px)]">
+      <div className="max-w-full mx-auto px-6 py-6 h-[calc(103vh-120px)]">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-full overflow-hidden">
           {/* Left 75% - Call Events */}
           <div className="lg:col-span-3 h-full flex flex-col overflow-hidden">
@@ -1004,7 +1004,7 @@ function App() {
               </div>
 
               {/* Filters Section */}
-              <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+              <div className="px-6 py-3 border-b border-gray-200 bg-gray-50">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {/* Row 1 */}
                   <div>
@@ -1125,7 +1125,7 @@ function App() {
                     >
                       <option value="all">All Directions</option>
                       <option value="inbound">Inbound</option>
-                      <option value="outbound-api">Outbound API</option>
+                      <option value="outbound-api">Outbound</option>
                     </select>
                   </div>
                   {/* Row 2 */}
