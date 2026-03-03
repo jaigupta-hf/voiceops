@@ -526,7 +526,6 @@ function App() {
     if (event.category === 'error') {
       return (
         <div className="space-y-2">
-          {/* Pills for severity, error_code, product */}
           <div className="flex gap-2 flex-wrap">
             {details.severity && (
               <span className={`px-2.5 py-1 text-xs font-medium rounded-full border ${getSeverityColor(details.severity)}`}>
@@ -544,7 +543,6 @@ function App() {
               </span>
             )}
           </div>
-          {/* Error message without heading */}
           {details.error_message && (
             <p className="text-sm text-gray-900">{details.error_message}</p>
           )}
@@ -565,7 +563,7 @@ function App() {
       )
     }
     
-    // Special rendering for twiml.call events, border-indigo-300 bg-indigo-50 text-indigo-800
+    // Special rendering for twiml.call events,
     if (event.event_type && event.event_type.includes('twiml.call')) {
       return (
         <div className="flex gap-2 flex-wrap">
@@ -592,14 +590,12 @@ function App() {
       
       return (
         <div className="space-y-2 text-sm">
-          {/* Status and Participant label/Call SID pills */}
           <div className="flex gap-2 flex-wrap">
             {details.status && (
               <span className={`px-2.5 py-1 text-xs font-medium rounded-full border ${getCallStatusColor(details.status)}`}>
                 {details.status}
               </span>
             )}
-            {/* Show participant_label if available, otherwise show call_sid */}
             {details.participant_label ? (
               <span className="px-2.5 py-1 text-xs font-medium rounded-full border border-indigo-200 bg-indigo-50 text-indigo-700">
                 {details.participant_label}
@@ -626,7 +622,6 @@ function App() {
             )}
           </div>
 
-          {/* Render other fields normally */}
           {otherFields.map(([key, value]) => {
             if (!value || value === 'N/A') return null
             
@@ -647,7 +642,7 @@ function App() {
       )
     }
     
-    // Special rendering for status-callback.conference events (not participant)
+    // Special rendering for status-callback.conference events
     if (event.event_type && event.event_type.includes('status-callback.conference') && !event.event_type.includes('participant')) {
       // Exclude conference_sid and friendly_name
       const excludedFields = ['conference_sid', 'friendly_name', 'status']
@@ -655,7 +650,7 @@ function App() {
       
       return (
         <div className="space-y-2 text-sm">
-          {/* Status pill */}
+          
           {details.status && (
             <div className="flex gap-2 flex-wrap">
               <span className={`px-2.5 py-1 text-xs font-medium rounded-full border ${getCallStatusColor(details.status)}`}>
@@ -691,21 +686,17 @@ function App() {
       
       return (
         <div className="space-y-2 text-sm">
-          {/* Pills container */}
           <div className="flex gap-2 flex-wrap">
-            {/* Status pill */}
             {details.status && (
               <span className={`px-2.5 py-1 text-xs font-medium rounded-full border ${getCallStatusColor(details.status)}`}>
                 {details.status}
               </span>
             )}
-            {/* Participant label pill */}
             {details.participant_label && (
               <span className="px-2.5 py-1 text-xs font-medium rounded-full border border-indigo-200 bg-indigo-50 text-indigo-700">
                 {details.participant_label}
               </span>
             )}
-            {/* Call SID pill */}
             {details.call_sid && details.call_sid !== 'N/A' && (
               <span className="px-2.5 py-1 text-xs font-medium rounded-full border border-purple-200 bg-purple-50 text-purple-700">
                 {details.call_sid}
@@ -727,7 +718,7 @@ function App() {
               </span>
             )}
           </div>
-          {/* Render other fields normally */}
+          
           {otherFields.map(([key, value]) => {
             if (!value || value === 'N/A') return null
             
@@ -748,7 +739,6 @@ function App() {
       )
     }
     
-    // Default rendering for other event types
     return (
       <div className="space-y-2 text-sm">
         {Object.entries(details).map(([key, value]) => {
@@ -778,39 +768,6 @@ function App() {
     }
   }
 
-  // Calculate live call status counts (current status of each unique call)
-  const calculateLiveStatusCounts = (events) => {
-    const statusCounts = {
-      'queued': 0,
-      'initiated': 0,
-      'ringing': 0,
-      'in-progress': 0,
-      'completed': 0,
-      'busy': 0,
-      'no-answer': 0,
-      'canceled': 0,
-      'failed': 0
-    }
-
-    // Group by call_sid and get the latest status for each
-    const callsByCallSid = {}
-    events.forEach(event => {
-      const callSid = event.call_sid
-      if (!callsByCallSid[callSid] || new Date(event.timestamp) > new Date(callsByCallSid[callSid].timestamp)) {
-        callsByCallSid[callSid] = event
-      }
-    })
-
-    // Count each status
-    Object.values(callsByCallSid).forEach(call => {
-      const status = call.call_status
-      if (statusCounts[status] !== undefined) {
-        statusCounts[status]++
-      }
-    })
-
-    return statusCounts
-  }
 
   const handleStatusClick = (status) => {
     setSelectedStatusFilter(status)
@@ -818,14 +775,6 @@ function App() {
 
   // Get unique values for filters
   const uniqueAccountSids = ['all', ...new Set(callEvents.map(e => e.account_sid).filter(Boolean))]
-  const uniqueDirections = ['all', ...new Set(callEvents.map(e => e.direction).filter(Boolean))]
-  
-  // Build event types list from hardcoded categories
-  const allEventTypes = [
-    'all',
-    ...Object.values(eventTypeCategories).flatMap(category => category.types)
-  ]
-  
   const uniqueSeverities = ['all', ...new Set(errorEvents.map(e => e.severity).filter(Boolean))]
   const uniqueErrorCodes = ['all', ...new Set(errorEvents.map(e => e.error_code).filter(Boolean))]
 
@@ -859,10 +808,6 @@ function App() {
     
     return true
   })
-
-  // Calculate stats from filtered events (before status filter)
-  // Backend already returns deduplicated events (latest per call_sid)
-  const liveStatusCounts = calculateLiveStatusCounts(baseFilteredCallEvents)
 
   // Apply status filter on top of base filters
   const filteredCallEvents = selectedStatusFilter !== 'all'
