@@ -1020,7 +1020,11 @@ function App() {
                     <select
                       value={callDateRange}
                       onChange={(e) => handleCallDateRangeChange(e.target.value)}
-                      className="w-full text-sm px-2 py-1.5 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className={`w-full text-sm px-2 py-1.5 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                        callDateRange !== 'all' 
+                          ? 'bg-blue-100 border-blue-400 font-semibold text-blue-900' 
+                          : 'border-gray-300 bg-white'
+                      }`}
                     >
                       <option value="all">All Time</option>
                       <option value="today">Today</option>
@@ -1098,7 +1102,11 @@ function App() {
                     <select
                       value={callFilters.callStatus}
                       onChange={(e) => setCallFilters({...callFilters, callStatus: e.target.value})}
-                      className="w-full text-sm px-2 py-1.5 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className={`w-full text-sm px-2 py-1.5 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                        callFilters.callStatus !== 'all' 
+                          ? 'bg-blue-100 border-blue-400 font-semibold text-blue-900' 
+                          : 'border-gray-300 bg-white'
+                      }`}
                     >
                       <option value="all">All Status</option>
                       <option value="queued">Queued</option>
@@ -1117,7 +1125,11 @@ function App() {
                     <select
                       value={callFilters.direction}
                       onChange={(e) => setCallFilters({...callFilters, direction: e.target.value})}
-                      className="w-full text-sm px-2 py-1.5 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className={`w-full text-sm px-2 py-1.5 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                        callFilters.direction !== 'all' 
+                          ? 'bg-blue-100 border-blue-400 font-semibold text-blue-900' 
+                          : 'border-gray-300 bg-white'
+                      }`}
                     >
                       <option value="all">All Directions</option>
                       <option value="inbound">Inbound</option>
@@ -1132,7 +1144,11 @@ function App() {
                       value={callFilters.fromNumber}
                       onChange={(e) => setCallFilters({...callFilters, fromNumber: e.target.value})}
                       placeholder="Enter from number..."
-                      className="w-full text-sm px-2 py-1.5 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className={`w-full text-sm px-2 py-1.5 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                        callFilters.fromNumber 
+                          ? 'bg-blue-100 border-blue-400 font-semibold text-blue-900' 
+                          : 'border-gray-300 bg-white'
+                      }`}
                     />
                   </div>
                   <div>
@@ -1142,7 +1158,11 @@ function App() {
                       value={callFilters.toNumber}
                       onChange={(e) => setCallFilters({...callFilters, toNumber: e.target.value})}
                       placeholder="Enter to number..."
-                      className="w-full text-sm px-2 py-1.5 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className={`w-full text-sm px-2 py-1.5 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                        callFilters.toNumber 
+                          ? 'bg-blue-100 border-blue-400 font-semibold text-blue-900' 
+                          : 'border-gray-300 bg-white'
+                      }`}
                     />
                   </div>
                   <div>
@@ -1150,7 +1170,11 @@ function App() {
                     <select
                       value={callFilters.eventType}
                       onChange={(e) => setCallFilters({...callFilters, eventType: e.target.value})}
-                      className="w-full text-sm px-2 py-1.5 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className={`w-full text-sm px-2 py-1.5 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                        callFilters.eventType !== 'all' 
+                          ? 'bg-blue-100 border-blue-400 font-semibold text-blue-900' 
+                          : 'border-gray-300 bg-white'
+                      }`}
                     >
                       <option value="all">All Event Types</option>
                       {Object.entries(eventTypeCategories).map(([key, category]) => (
@@ -1263,7 +1287,11 @@ function App() {
                     <select
                       value={errorFilters.severity}
                       onChange={(e) => setErrorFilters({...errorFilters, severity: e.target.value})}
-                      className="flex-1 text-xs px-2 py-1 border border-gray-300 rounded-full"
+                      className={`flex-1 text-xs px-2 py-1 border rounded-full ${
+                        errorFilters.severity !== 'all' 
+                          ? 'bg-blue-100 border-blue-400 font-semibold text-blue-900' 
+                          : 'border-gray-300 bg-white'
+                      }`}
                     >
                       <option value="all">All Severities</option>
                       {uniqueSeverities.filter(s => s !== 'all').map(severity => (
@@ -1273,7 +1301,11 @@ function App() {
                     <select
                       value={errorFilters.errorCode}
                       onChange={(e) => setErrorFilters({...errorFilters, errorCode: e.target.value})}
-                      className="flex-1 text-xs px-2 py-1 border border-gray-300 rounded-full"
+                      className={`flex-1 text-xs px-2 py-1 border rounded-full ${
+                        errorFilters.errorCode !== 'all' 
+                          ? 'bg-blue-100 border-blue-400 font-semibold text-blue-900' 
+                          : 'border-gray-300 bg-white'
+                      }`}
                     >
                       <option value="all">All Codes</option>
                       {uniqueErrorCodes.filter(c => c !== 'all').map(code => (
@@ -1285,7 +1317,11 @@ function App() {
                     <select
                       value={errorDateRange}
                       onChange={(e) => handleErrorDateRangeChange(e.target.value)}
-                      className="w-full text-xs px-2 py-1 border border-gray-300 rounded-full"
+                      className={`w-full text-xs px-2 py-1 border rounded-full ${
+                        errorDateRange !== 'all' 
+                          ? 'bg-blue-100 border-blue-400 font-semibold text-blue-900' 
+                          : 'border-gray-300 bg-white'
+                      }`}
                     >
                       <option value="all">All Time</option>
                       <option value="today">Today</option>
