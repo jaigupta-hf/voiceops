@@ -395,6 +395,26 @@ function App() {
     setTimeout(() => setCopiedId(null), 2000)
   }
 
+  const copyPayloadToClipboard = () => {
+    const jsonString = JSON.stringify(selectedPayload, null, 2)
+    navigator.clipboard.writeText(jsonString)
+    setCopiedId('payload')
+    setTimeout(() => setCopiedId(null), 2000)
+  }
+
+  const downloadPayload = () => {
+    const jsonString = JSON.stringify(selectedPayload, null, 2)
+    const blob = new Blob([jsonString], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `event-payload-${Date.now()}.json`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  }
+
   const getCallStatusIcon = (event) => {
     // Check if there are any errors associated with this call_sid
     const hasError = errorEvents.some(error => error.correlation_sid === event.call_sid)
@@ -1799,12 +1819,39 @@ function App() {
               <div className="w-[40%] border-l border-gray-300 flex flex-col bg-gray-50">
                 <div className="px-4 py-2 border-b border-gray-300 flex items-center justify-between bg-white">
                   <h3 className="text-lg font-semibold text-gray-900">Event Payload</h3>
-                  <button
-                    onClick={() => setSelectedPayload(null)}
-                    className="p-1 hover:bg-gray-100 rounded-full transition-colors"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={copyPayloadToClipboard}
+                      className="flex items-center gap-1 px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full transition-colors border border-gray-300"
+                      title="Copy to clipboard"
+                    >
+                      {copiedId === 'payload' ? (
+                        <>
+                          <Check className="w-3 h-3" />
+                          Copied
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-3 h-3" />
+                          Copy
+                        </>
+                      )}
+                    </button>
+                    <button
+                      onClick={downloadPayload}
+                      className="flex items-center gap-1 px-2 py-1 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded-full transition-colors"
+                      title="Download as JSON"
+                    >
+                      <Download className="w-3 h-3" />
+                      Download
+                    </button>
+                    <button
+                      onClick={() => setSelectedPayload(null)}
+                      className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
                 <div className="flex-1 overflow-y-auto p-4">
                   <pre className="bg-gray-900 text-green-400 p-4 rounded-xl text-xs font-mono overflow-x-auto">
