@@ -14,6 +14,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [accessToken, setAccessToken] = useState(null)
+  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api'
 
   // Load user from localStorage on mount
   useEffect(() => {
@@ -29,7 +30,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (googleToken) => {
     try {
-      const response = await fetch('http://localhost:8000/api/auth/google/', {
+      const response = await fetch(`${apiBaseUrl}/auth/google/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -75,7 +76,7 @@ export const AuthProvider = ({ children }) => {
     }
 
     try {
-      const response = await fetch('http://localhost:8000/api/auth/token/refresh/', {
+      const response = await fetch(`${apiBaseUrl}/auth/token/refresh/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

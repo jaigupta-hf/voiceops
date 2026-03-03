@@ -200,4 +200,3 @@ def login_notification(user_data, is_new_user=False):
         import traceback
         traceback.print_exc()
         return False
-        return False
