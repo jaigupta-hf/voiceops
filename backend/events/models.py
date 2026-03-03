@@ -3,8 +3,7 @@ from django.db import models
 
 class CallEvent(models.Model):
     """
-    Stores all call events
-    (initiated, ringing, answered, completed)
+    Stores all call and conference events
     """
 
     event_id = models.CharField(max_length=100, primary_key=True)

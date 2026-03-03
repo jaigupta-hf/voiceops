@@ -73,7 +73,7 @@ def build_call_trace(call_sid):
         if formatted_event:
             events.append(formatted_event)
     
-    # Fetch error events related to this call_sid (check in meta_data)
+    # Fetch error events related to this call_sid
     error_events = ErrorEvent.objects.filter(correlation_sid=call_sid).order_by('timestamp')
     for error_event in error_events:
         formatted_error = format_error_event(error_event)
@@ -154,10 +154,10 @@ def format_call_event(event):
     
     elif 'api-request.conference-participant.created' in event_type:
         details = {}
-        # Add call_sid
+        
         if event.call_sid:
             details['call_sid'] = event.call_sid
-        # Extract from request parameters
+        
         if request_params.get('Label'):
             details['participant_label'] = request_params['Label']
         if request_params.get('Coaching') is not None:
@@ -169,13 +169,13 @@ def format_call_event(event):
     
     elif 'api-request.conference-participant.modified' in event_type:
         details = {}
-        # Add call_sid
+        
         if event.call_sid:
             details['call_sid'] = event.call_sid
-        # Extract participant label from request parameters
+        
         if request_params.get('Label'):
             details['participant_label'] = request_params['Label']
-        # Extract from request parameters
+        
         if request_params.get('Coaching') is not None:
             details['coaching'] = request_params['Coaching']
         if request_params.get('Hold') is not None:
@@ -189,10 +189,10 @@ def format_call_event(event):
         details = {
             'status': 'Removed participant programmatically'
         }
-        # Add call_sid
+        
         if event.call_sid:
             details['call_sid'] = event.call_sid
-        # Extract participant label from request parameters
+        
         if request_params.get('Label'):
             details['participant_label'] = request_params['Label']
         

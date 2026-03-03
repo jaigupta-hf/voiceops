@@ -6,7 +6,6 @@ from urllib.parse import parse_qs, unquote
 from ..models import CallEvent, ErrorEvent
 from ..integrations.slack import database_call_notification, database_error_notification
 
-# will handle each category of events separately because they have different schema
 def status_callback_call(event_data):
     """Process and store a status-callback.call event"""
     try:
@@ -18,7 +17,7 @@ def status_callback_call(event_data):
             event_id=data.get('eventSid', ''),
             account_sid=request_params.get('AccountSid', ''),
             call_sid=request_params.get('CallSid', ''),
-            conference_sid='',  # Leave blank for status-callback.call events
+            conference_sid='', 
             event_type=event_data.get('type', ''),
             call_status=request_params.get('CallStatus', ''),
             direction=request_params.get('Direction', ''),
@@ -50,9 +49,9 @@ def status_callback_conference_participant(event_data):
             conference_sid=request_params.get('ConferenceSid', ''),
             event_type=event_data.get('type', ''),
             call_status=request_params.get('StatusCallbackEvent', ''),
-            direction='',  # Leave blank for status-callback.conference-participant events
-            from_number='',  # Leave blank for status-callback.conference-participant events
-            to_number='',  # Leave blank for status-callback.conference-participant events
+            direction='',  
+            from_number='',
+            to_number='', 
             timestamp=parsedate_to_datetime(timestamp_str),
             meta_data=event_data
         )
@@ -75,13 +74,13 @@ def status_callback_conference(event_data):
         call_event = CallEvent.objects.create(
             event_id=data.get('eventSid', ''),
             account_sid=request_params.get('AccountSid', ''),
-            call_sid='',  # Leave blank for status-callback.conference events
+            call_sid='',
             conference_sid=request_params.get('ConferenceSid', ''),
             event_type=event_data.get('type', ''),
             call_status=request_params.get('StatusCallbackEvent', ''),
-            direction='',  # Leave blank for status-callback.conference events
-            from_number='',  # Leave blank for status-callback.conference events
-            to_number='',  # Leave blank for status-callback.conference events
+            direction='', 
+            from_number='', 
+            to_number='',
             timestamp=parsedate_to_datetime(timestamp_str),
             meta_data=event_data
         )
@@ -105,10 +104,10 @@ def api_request_call(event_data):
             event_id=data.get('eventSid', ''),
             account_sid=request_params.get('AccountSid', ''),
             call_sid=data.get('sid', ''),
-            conference_sid='',  # Leave blank for api-request.call events
+            conference_sid='', 
             event_type=event_data.get('type', ''),
-            call_status='',  # Leave blank for api-request.call events
-            direction='',  # Leave blank for api-request.call events
+            call_status='', 
+            direction='',
             from_number=request_params.get('From', ''),
             to_number=request_params.get('To', ''),
             timestamp=parsedate_to_datetime(timestamp_str),
@@ -140,11 +139,11 @@ def api_request_conference_participant_created(event_data):
         call_event = CallEvent.objects.create(
             event_id=data.get('eventSid', ''),
             account_sid=account_sid,
-            call_sid='',  # Leave blank for api-request.conference-participant events
+            call_sid='', 
             conference_sid=data.get('sid', ''),
             event_type=event_data.get('type', ''),
-            call_status='',  # Leave blank for api-request.conference-participant events
-            direction='',  # Leave blank for api-request.conference-participant events
+            call_status='', 
+            direction='',
             from_number=request_params.get('From', ''),
             to_number=request_params.get('To', ''),
             timestamp=parsedate_to_datetime(timestamp_str),
@@ -183,10 +182,10 @@ def api_request_conference_participant_modified(event_data): # also covers api-r
             call_sid=call_sid,
             conference_sid=data.get('sid', ''),
             event_type=event_data.get('type', ''),
-            call_status='',  # Leave blank for api-request.conference-participant.modified events
-            direction='',  # Leave blank for api-request.conference-participant.modified events
-            from_number='',  # Leave blank for api-request.conference-participant.modified events
-            to_number='',  # Leave blank for api-request.conference-participant.modified events
+            call_status='', 
+            direction='', 
+            from_number='', 
+            to_number='',
             timestamp=parsedate_to_datetime(timestamp_str),
             meta_data=event_data
         )
@@ -213,7 +212,7 @@ def twiml_call(event_data):
             event_id=data.get('eventSid', ''),
             account_sid=request_params.get('AccountSid', ''),
             call_sid=request_params.get('CallSid', ''),
-            conference_sid='',  # Leave blank for twiml.call events
+            conference_sid='',
             event_type=event_data.get('type', ''),
             call_status=call_status,
             direction=request_params.get('Direction', ''),
