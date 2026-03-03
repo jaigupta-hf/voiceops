@@ -321,40 +321,6 @@ function App() {
     }
   }
 
-  // Hardcoded Twilio event type categories
-  const eventTypeCategories = {
-    'status-callback': {
-      label: 'Status Callback',
-      types: [
-        'com.twilio.voice.status-callback.call.initiated',
-        'com.twilio.voice.status-callback.call.ringing',
-        'com.twilio.voice.status-callback.call.answered',
-        'com.twilio.voice.status-callback.call.completed',
-        'com.twilio.voice.status-callback.conference.updated',
-        'com.twilio.voice.status-callback.conference-participant.updated'
-      ]
-    },
-    'api-request': {
-      label: 'API Request',
-      types: [
-        'com.twilio.voice.api-request.call.created',
-        'com.twilio.voice.api-request.call.modified',
-        'com.twilio.voice.api-request.conference.modified',
-        'com.twilio.voice.api-request.conference-participant.created',
-        'com.twilio.voice.api-request.conference-participant.modified',
-        'com.twilio.voice.api-request.conference-participant.deleted'
-      ]
-    },
-    'twiml': {
-      label: 'TwiML',
-      types: [
-        'com.twilio.voice.twiml.call.redirected',
-        'com.twilio.voice.twiml.call.requested',
-        'com.twilio.voice.twiml.call.transferred'
-      ]
-    }
-  }
-
   // Function to format event type - remove com.twilio.voice prefix
   const formatEventType = (eventType) => {
     if (!eventType) return 'N/A'
@@ -1191,29 +1157,6 @@ function App() {
                       }`}
                     />
                   </div>
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">Event Type</label>
-                    <select
-                      value={callFilters.eventType}
-                      onChange={(e) => setCallFilters({...callFilters, eventType: e.target.value})}
-                      className={`w-full text-sm px-2 py-1.5 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                        callFilters.eventType !== 'all' 
-                          ? 'bg-blue-100 border-blue-400 font-semibold text-blue-900' 
-                          : 'border-gray-300 bg-white'
-                      }`}
-                    >
-                      <option value="all">All Event Types</option>
-                      {Object.entries(eventTypeCategories).map(([key, category]) => (
-                        <optgroup key={key} label={category.label}>
-                          {category.types.map(type => (
-                            <option key={type} value={type}>
-                              {formatEventType(type)}
-                            </option>
-                          ))}
-                        </optgroup>
-                      ))}
-                    </select>
-                  </div>
                 </div>
               </div>
 
@@ -1239,10 +1182,10 @@ function App() {
                           Direction
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          From / To
+                          From
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Event Type
+                          To
                         </th>
                       </tr>
                     </thead>
@@ -1281,16 +1224,11 @@ function App() {
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                               {event.direction || '-'}
                             </td>
-                            <td className="px-6 py-4">
-                              <div className="flex flex-col text-sm">
-                                <span className="text-gray-900">{event.from_number || '-'}</span>
-                                <span className="text-gray-600 mt-1">{event.to_number || '-'}</span>
-                              </div>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                              {event.from_number || '-'}
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <span className="px-2 py-1 text-xs font-medium rounded-full border bg-gray-50 text-gray-700 border-gray-300">
-                                {formatEventType(event.event_type)}
-                              </span>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                              {event.to_number || '-'}
                             </td>
                           </tr>
                         ))
