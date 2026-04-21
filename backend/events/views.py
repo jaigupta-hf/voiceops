@@ -3,15 +3,14 @@ Views for handling webhook endpoints.
 """
 import json
 import os
-import asyncio
-from datetime import datetime, timedelta
-from pathlib import Path
+from datetime import timedelta
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.conf import settings
 from django.utils import timezone
-from django.db.models import Max, OuterRef, Subquery
+from django.db import connection
+from django.db.models import Count, Exists, OuterRef, Q, Subquery
 from rest_framework import viewsets, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -25,9 +24,6 @@ from .utilities.event_processing import process_call_event, process_error_event
 from .utilities.call_trace import build_call_trace, build_conference_trace
 from .integrations.slack import twilio_error_notification, webhook_error_notification
 
-from dotenv import load_dotenv
-load_dotenv()
-
 
 class CallEventViewSet(viewsets.ReadOnlyModelViewSet):
     """
@@ -38,6 +34,7 @@ class CallEventViewSet(viewsets.ReadOnlyModelViewSet):
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['call_sid', 'from_number', 'to_number', 'account_sid']
     ordering_fields = ['timestamp', 'created_at']
+    MAX_NO_PAGINATION_RESULTS = 1000
     
     def get_queryset(self):
         """
@@ -50,36 +47,39 @@ class CallEventViewSet(viewsets.ReadOnlyModelViewSet):
         
         # If searching (for timeline view), don't deduplicate - return all events
         search_param = self.request.query_params.get('search', None)
+        no_pagination = self.request.query_params.get('no_pagination') == 'true'
         if search_param:
             # Return all events matching the search, don't deduplicate
+            if no_pagination:
+                return queryset[:self.MAX_NO_PAGINATION_RESULTS]
             return queryset
-        
-        from django.db.models import Q, Exists, OuterRef
-        
-        # Subquery to check if a completed event exists for this call_sid
-        has_completed_event = CallEvent.objects.filter(
-            call_sid=OuterRef('call_sid'),
-            event_type__contains='status-callback.call.completed'
-        )
-        
-        # Subquery to get the first completed event_id for each call_sid
-        completed_event_id = CallEvent.objects.filter(
-            call_sid=OuterRef('call_sid'),
-            event_type__contains='status-callback.call.completed'
-        ).order_by('timestamp').values('event_id')[:1]
-        
-        # Subquery to get the latest event_id for each call_sid
-        latest_event_id = CallEvent.objects.filter(
-            call_sid=OuterRef('call_sid')
-        ).order_by('-timestamp').values('event_id')[:1]
-        
-        # Filter to get one event per call_sid:
-        # - If completed event exists, show that (the first completed event)
-        # - Otherwise, show the latest event by timestamp
-        queryset = queryset.filter(
-            Q(event_id__in=Subquery(completed_event_id)) |
-            (Q(event_id__in=Subquery(latest_event_id)) & ~Exists(has_completed_event))
-        ).distinct().order_by('-timestamp')
+
+        if connection.vendor == 'postgresql':
+            latest_per_call_ids = queryset.order_by('call_sid', '-timestamp').distinct('call_sid').values('event_id')
+            queryset = queryset.filter(event_id__in=Subquery(latest_per_call_ids)).order_by('-timestamp')
+        else:
+            # Fallback for non-PostgreSQL backends.
+            has_completed_event = CallEvent.objects.filter(
+                call_sid=OuterRef('call_sid'),
+                event_type__contains='status-callback.call.completed'
+            )
+
+            completed_event_id = CallEvent.objects.filter(
+                call_sid=OuterRef('call_sid'),
+                event_type__contains='status-callback.call.completed'
+            ).order_by('timestamp').values('event_id')[:1]
+
+            latest_event_id = CallEvent.objects.filter(
+                call_sid=OuterRef('call_sid')
+            ).order_by('-timestamp').values('event_id')[:1]
+
+            queryset = queryset.filter(
+                Q(event_id__in=Subquery(completed_event_id)) |
+                (Q(event_id__in=Subquery(latest_event_id)) & ~Exists(has_completed_event))
+            ).distinct().order_by('-timestamp')
+
+        if no_pagination:
+            return queryset[:self.MAX_NO_PAGINATION_RESULTS]
         
         return queryset
     
@@ -92,11 +92,14 @@ class CallEventViewSet(viewsets.ReadOnlyModelViewSet):
         
         today_events = CallEvent.objects.filter(timestamp__gte=today_start, timestamp__lt=today_end)
         
+        status_counts = today_events.values('call_status').annotate(count=Count('event_id'))
+        counts_dict = {item['call_status']: item['count'] for item in status_counts}
+
         by_event_type = {
-            'initiated': today_events.filter(call_status='initiated').count(),
-            'ringing': today_events.filter(call_status='ringing').count(),
-            'answered': today_events.filter(call_status='in-progress').count(),
-            'completed': today_events.filter(call_status='completed').count()
+            'initiated': counts_dict.get('initiated', 0),
+            'ringing': counts_dict.get('ringing', 0),
+            'answered': counts_dict.get('in-progress', 0),
+            'completed': counts_dict.get('completed', 0)
         }
         
         return Response({
@@ -144,6 +147,13 @@ class ErrorEventViewSet(viewsets.ReadOnlyModelViewSet):
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['error_code', 'correlation_sid', 'account_sid']
     ordering_fields = ['timestamp', 'created_at']
+    MAX_NO_PAGINATION_RESULTS = 1000
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        if self.request.query_params.get('no_pagination') == 'true':
+            return queryset[:self.MAX_NO_PAGINATION_RESULTS]
+        return queryset
     
     @action(detail=False, methods=['get'])
     def stats(self, request):
@@ -153,9 +163,8 @@ class ErrorEventViewSet(viewsets.ReadOnlyModelViewSet):
         
         today_errors = ErrorEvent.objects.filter(timestamp__gte=today_start, timestamp__lt=today_end)
         
-        by_severity = {}
-        for severity in today_errors.values_list('severity', flat=True).distinct():
-            by_severity[severity] = today_errors.filter(severity=severity).count()
+        severities = today_errors.values('severity').annotate(count=Count('event_id'))
+        by_severity = {item['severity']: item['count'] for item in severities}
         
         return Response({
             'by_severity': by_severity
