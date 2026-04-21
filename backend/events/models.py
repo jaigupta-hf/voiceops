@@ -22,9 +22,6 @@ class CallEvent(models.Model):
 
     meta_data = models.JSONField()
 
-    class Meta:
-        ordering = ["-timestamp"]
-
     def __str__(self):
         return f"{self.call_sid or 'N/A'} - {self.call_status or 'N/A'}"
 
@@ -49,9 +46,6 @@ class ErrorEvent(models.Model):
     timestamp = models.DateTimeField(db_index=True)
 
     meta_data = models.JSONField()
-
-    class Meta:
-        ordering = ["-timestamp"]
 
     def __str__(self):
         return f"{self.error_code} - {self.severity}"
