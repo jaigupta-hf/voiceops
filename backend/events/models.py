@@ -16,7 +16,7 @@ class CallEvent(models.Model):
 
     direction = models.CharField(max_length=12, null=True, blank=True, db_index=True)
     from_number = models.CharField(max_length=32, null=True, blank=True, db_index=True)
-    to_number = models.CharField(max_length=64, null=True, blank=True, db_index=True) 
+    to_number = models.CharField(max_length=64, null=True, blank=True, db_index=True) # length is 64 because somtimes to number is a long string
 
     timestamp = models.DateTimeField(db_index=True)
 
