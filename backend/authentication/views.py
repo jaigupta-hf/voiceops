@@ -1,3 +1,6 @@
+import logging
+import threading
+
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -9,6 +12,9 @@ from django.contrib.auth.models import User
 from django.conf import settings
 from .serializers import UserSerializer, GoogleAuthSerializer
 from events.integrations.slack import login_notification
+
+
+logger = logging.getLogger(__name__)
 
 
 def get_tokens_for_user(user):
@@ -70,19 +76,24 @@ def google_auth(request):
             user.last_name = last_name
             user.save()
         
-        # Send Slack notification for login/registration
+        # Generate JWT tokens
+        tokens = get_tokens_for_user(user)
+
+        # Send Slack notification in a fire-and-forget daemon thread
+        # so login response is not blocked by external Slack latency.
         try:
             user_data = {
                 'email': email,
                 'first_name': first_name,
-                'last_name': last_name
+                'last_name': last_name,
             }
-            login_notification(user_data, is_new_user=created)
+            threading.Thread(
+                target=login_notification,
+                args=(user_data, created),
+                daemon=True,
+            ).start()
         except Exception as slack_exc:
-            print(f"Slack notification failed: {slack_exc}")
-        
-        # Generate JWT tokens
-        tokens = get_tokens_for_user(user)
+            logger.error("Slack notification thread dispatch failed: %s", slack_exc)
         
         return Response({
             'access': tokens['access'],
