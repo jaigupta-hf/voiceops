@@ -37,7 +37,7 @@ This file gives AI coding agents a fast, reliable mental model of the backend so
 
 ## End-to-End Data Flow
 
-1. Twilio sends POST payload to /api/twilio-events or /webhooks/twilio-events.
+1. Twilio sends POST payload to or /webhooks/twilio-events.
 2. events/views.py inspects each event and routes by type.
 3. events/utilities/event_processing.py creates CallEvent or ErrorEvent records.
 4. Newly created events are serialized and broadcast to channel group twilio_events.

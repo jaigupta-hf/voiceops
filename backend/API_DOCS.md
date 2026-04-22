@@ -5,7 +5,6 @@
 - API root: /api/
 - Auth root: /api/auth/
 - Webhook aliases:
-  - /api/twilio-events
   - /webhooks/twilio-events
 
 ## Auth APIs
