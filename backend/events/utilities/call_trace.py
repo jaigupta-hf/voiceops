@@ -13,45 +13,41 @@ def build_call_trace(call_sid):
     - header: Call SID, final status, direction, from, to
     - events: List of formatted events with timestamp and type-specific details
     """
-    # Fetch all call events for this call_sid
-    call_events = CallEvent.objects.filter(call_sid=call_sid).order_by('timestamp')
-    
-    if not call_events.exists():
+    # Fetch once and iterate once to avoid repeated QuerySet evaluations.
+    call_events = list(CallEvent.objects.filter(call_sid=call_sid).order_by('timestamp'))
+
+    if not call_events:
         return None
-    
-    # Get header information from the first and last event
-    # Prioritize twiml.call or status-callback.call events for header values
-    header_source_event = None
-    for event in call_events:
-        if 'twiml.call' in event.event_type or 'status-callback.call' in event.event_type:
-            header_source_event = event
-            break
-    
-    # Fall back to first event if no twiml.call or status-callback.call found
-    if not header_source_event:
-        header_source_event = call_events.first()
-    
-    last_event = call_events.last()
-    
-    # Determine final status: prioritize status-callback.call.completed if it exists
+
+    header_source_event = call_events[0]
     completed_event = None
-    for event in call_events:
-        if 'status-callback.call.completed' in event.event_type:
-            completed_event = event
-            break
-    
-    # Use completed event status if available, otherwise use last event
-    final_status_event = completed_event if completed_event else last_event
-    
-    # Extract participant label from status-callback.conference.participant events if available
     participant_label = None
+    events = []
+    found_header_source = False
+
     for event in call_events:
+        event_type = event.event_type or ''
+
+        if not found_header_source and (
+            'twiml.call' in event_type or 'status-callback.call' in event_type
+        ):
+            header_source_event = event
+            found_header_source = True
+
+        if completed_event is None and 'status-callback.call.completed' in event_type:
+            completed_event = event
+
         meta_data = event.meta_data or {}
         request_params = meta_data.get('data', {}).get('request', {}).get('parameters', {})
-        participant_label = request_params.get('ParticipantLabel')
-        if participant_label:
-            break
-    
+        if participant_label is None:
+            participant_label = request_params.get('ParticipantLabel')
+
+        formatted_event = format_call_event(event)
+        if formatted_event:
+            events.append(formatted_event)
+
+    final_status_event = completed_event if completed_event else call_events[-1]
+
     # Build header
     header = {
         'call_sid': call_sid,
@@ -65,14 +61,7 @@ def build_call_trace(call_sid):
     # Add participant label if available
     if participant_label:
         header['participant_label'] = participant_label
-    
-    # Build events list
-    events = []
-    for event in call_events:
-        formatted_event = format_call_event(event)
-        if formatted_event:
-            events.append(formatted_event)
-    
+
     # Fetch error events related to this call_sid
     error_events = ErrorEvent.objects.filter(correlation_sid=call_sid).order_by('timestamp')
     for error_event in error_events:
@@ -90,8 +79,8 @@ def build_call_trace(call_sid):
 
 
 def format_call_event(event):
-    """Format a single call event based on its type."""
-    event_type = event.event_type
+    """Format a single call event using a dispatcher-based event parser."""
+    event_type = event.event_type or ''
     meta_data = event.meta_data or {}
     
     # Base event structure
@@ -105,120 +94,146 @@ def format_call_event(event):
     
     # Extract request parameters from meta_data if available
     request_params = meta_data.get('data', {}).get('request', {}).get('parameters', {})
-    
-    if 'status-callback.call' in event_type:
-        formatted['details'] = {
-            'call_status': event.call_status or 'N/A'
-        }
-    
-    elif 'status-callback.conference.participant' in event_type:
-        details = {
-            'conference_sid': event.conference_sid or 'N/A',
-            'call_sid': event.call_sid or 'N/A',
-            'status': event.call_status or 'N/A'
-        }
-        # Add optional fields if available
-        if request_params.get('FriendlyName'):
-            details['friendly_name'] = request_params['FriendlyName']
-        if request_params.get('ParticipantLabel'):
-            details['participant_label'] = request_params['ParticipantLabel']
-        if request_params.get('Hold') is not None:
-            details['hold'] = request_params['Hold']
-        if request_params.get('Muted') is not None:
-            details['muted'] = request_params['Muted']
-        if request_params.get('Coaching') is not None:
-            details['coaching'] = request_params['Coaching']
-        if request_params.get('ReasonParticipantLeft'):
-            details['reason_participant_left'] = request_params['ReasonParticipantLeft']
-        
-        formatted['details'] = details
-    
-    elif 'status-callback.conference' in event_type:
-        details = {
-            'conference_sid': event.conference_sid or 'N/A',
-            'status': event.call_status or 'N/A'
-        }
-        # Add optional fields if available
-        if request_params.get('FriendlyName'):
-            details['friendly_name'] = request_params['FriendlyName']
-        if request_params.get('ReasonConferenceEnded'):
-            details['reason_conference_ended'] = request_params['ReasonConferenceEnded']
-        if request_params.get('ParticipantLabelEndingConference'):
-            details['participant_label_ending_conference'] = request_params['ParticipantLabelEndingConference']
-        
-        formatted['details'] = details
-    
-    elif 'api-request.call' in event_type:
-        # For api-request.call, show minimal details
-        formatted['details'] = {}
-    
-    elif 'api-request.conference-participant.created' in event_type:
-        details = {}
-        
-        if event.call_sid:
-            details['call_sid'] = event.call_sid
-        
-        if request_params.get('Label'):
-            details['participant_label'] = request_params['Label']
-        if request_params.get('Coaching') is not None:
-            details['coaching'] = request_params['Coaching']
-        if request_params.get('Muted') is not None:
-            details['muted'] = request_params['Muted']
-        
-        formatted['details'] = details
-    
-    elif 'api-request.conference-participant.modified' in event_type:
-        details = {}
-        
-        if event.call_sid:
-            details['call_sid'] = event.call_sid
-        
-        if request_params.get('Label'):
-            details['participant_label'] = request_params['Label']
-        
-        if request_params.get('Coaching') is not None:
-            details['coaching'] = request_params['Coaching']
-        if request_params.get('Hold') is not None:
-            details['hold'] = request_params['Hold']
-        if request_params.get('Muted') is not None:
-            details['muted'] = request_params['Muted']
-        
-        formatted['details'] = details
-    
-    elif 'api-request.conference-participant.deleted' in event_type:
-        details = {
-            'status': 'Removed participant programmatically'
-        }
-        
-        if event.call_sid:
-            details['call_sid'] = event.call_sid
-        
-        if request_params.get('Label'):
-            details['participant_label'] = request_params['Label']
-        
-        formatted['details'] = details
-    
-    elif 'twiml.call' in event_type:
-        details = {
-            'status': event.call_status or 'N/A'
-        }
-        # Check request method
-        request_method = meta_data.get('data', {}).get('request', {}).get('method', '')
-        request_url = meta_data.get('data', {}).get('request', {}).get('url', '')
-        
-        if request_url:
-            if request_method == 'GET':
-                # For GET requests, show the complete URL
-                details['url'] = request_url
-            else:
-                # For other methods, extract last segment
-                url_parts = request_url.rstrip('/').split('/')
-                if url_parts:
-                    details['url'] = url_parts[-1]
-        
-        formatted['details'] = details
+
+    handler = _get_call_event_handler(event_type)
+    if handler:
+        formatted['details'] = handler(event, request_params, meta_data)
     
     return formatted
+
+
+def _get_call_event_handler(event_type):
+    """Resolve the first matching parser for a given event_type."""
+    for event_fragment, handler in CALL_EVENT_HANDLER_MAP.items():
+        if event_fragment in event_type:
+            return handler
+    return None
+
+
+def _handle_status_callback_call(event, request_params, meta_data):
+    del request_params, meta_data
+    return {
+        'call_status': event.call_status or 'N/A',
+    }
+
+
+def _handle_status_callback_conference_participant(event, request_params, meta_data):
+    del meta_data
+    details = {
+        'conference_sid': event.conference_sid or 'N/A',
+        'call_sid': event.call_sid or 'N/A',
+        'status': event.call_status or 'N/A',
+    }
+
+    if request_params.get('FriendlyName'):
+        details['friendly_name'] = request_params['FriendlyName']
+    if request_params.get('ParticipantLabel'):
+        details['participant_label'] = request_params['ParticipantLabel']
+    if request_params.get('Hold') is not None:
+        details['hold'] = request_params['Hold']
+    if request_params.get('Muted') is not None:
+        details['muted'] = request_params['Muted']
+    if request_params.get('Coaching') is not None:
+        details['coaching'] = request_params['Coaching']
+    if request_params.get('ReasonParticipantLeft'):
+        details['reason_participant_left'] = request_params['ReasonParticipantLeft']
+
+    return details
+
+
+def _handle_status_callback_conference(event, request_params, meta_data):
+    del meta_data
+    details = {
+        'conference_sid': event.conference_sid or 'N/A',
+        'status': event.call_status or 'N/A',
+    }
+
+    if request_params.get('FriendlyName'):
+        details['friendly_name'] = request_params['FriendlyName']
+    if request_params.get('ReasonConferenceEnded'):
+        details['reason_conference_ended'] = request_params['ReasonConferenceEnded']
+    if request_params.get('ParticipantLabelEndingConference'):
+        details['participant_label_ending_conference'] = request_params['ParticipantLabelEndingConference']
+
+    return details
+
+
+def _handle_api_request_call(event, request_params, meta_data):
+    del event, request_params, meta_data
+    return {}
+
+
+def _handle_api_request_conference_participant_created(event, request_params, meta_data):
+    del meta_data
+    details = {}
+    if event.call_sid:
+        details['call_sid'] = event.call_sid
+    if request_params.get('Label'):
+        details['participant_label'] = request_params['Label']
+    if request_params.get('Coaching') is not None:
+        details['coaching'] = request_params['Coaching']
+    if request_params.get('Muted') is not None:
+        details['muted'] = request_params['Muted']
+    return details
+
+
+def _handle_api_request_conference_participant_modified(event, request_params, meta_data):
+    del meta_data
+    details = {}
+    if event.call_sid:
+        details['call_sid'] = event.call_sid
+    if request_params.get('Label'):
+        details['participant_label'] = request_params['Label']
+    if request_params.get('Coaching') is not None:
+        details['coaching'] = request_params['Coaching']
+    if request_params.get('Hold') is not None:
+        details['hold'] = request_params['Hold']
+    if request_params.get('Muted') is not None:
+        details['muted'] = request_params['Muted']
+    return details
+
+
+def _handle_api_request_conference_participant_deleted(event, request_params, meta_data):
+    del meta_data
+    details = {
+        'status': 'Removed participant programmatically',
+    }
+    if event.call_sid:
+        details['call_sid'] = event.call_sid
+    if request_params.get('Label'):
+        details['participant_label'] = request_params['Label']
+    return details
+
+
+def _handle_twiml_call(event, request_params, meta_data):
+    del request_params
+    details = {
+        'status': event.call_status or 'N/A',
+    }
+    request_method = meta_data.get('data', {}).get('request', {}).get('method', '')
+    request_url = meta_data.get('data', {}).get('request', {}).get('url', '')
+
+    if request_url:
+        if request_method == 'GET':
+            details['url'] = request_url
+        else:
+            url_parts = request_url.rstrip('/').split('/')
+            if url_parts:
+                details['url'] = url_parts[-1]
+
+    return details
+
+
+CALL_EVENT_HANDLER_MAP = {
+    'status-callback.conference.participant': _handle_status_callback_conference_participant,
+    'status-callback.conference': _handle_status_callback_conference,
+    'status-callback.call': _handle_status_callback_call,
+    'api-request.conference-participant.created': _handle_api_request_conference_participant_created,
+    'api-request.conference-participant.modified': _handle_api_request_conference_participant_modified,
+    'api-request.conference-participant.deleted': _handle_api_request_conference_participant_deleted,
+    'api-request.call': _handle_api_request_call,
+    'twiml.call': _handle_twiml_call,
+}
 
 
 def format_error_event(error_event):
